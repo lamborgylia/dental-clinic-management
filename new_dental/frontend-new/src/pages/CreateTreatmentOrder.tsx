@@ -4,17 +4,6 @@ import api from '../services/api';
 import { doctorsApi } from '../services/doctorsApi';
 import { treatmentPlansApi } from '../services/treatmentPlansApi';
 
-interface TreatmentPlanService {
-  id: number;
-  treatment_plan_id: number;
-  service_id: number;
-  service_name: string;
-  service_price: number;
-  tooth_number: number;
-  quantity: number;
-  is_completed: number;
-  notes?: string;
-}
 import TeethMap from '../components/TeethMap';
 
 interface Patient {
@@ -38,15 +27,6 @@ interface Service {
   price: number;
   category: string;
   description: string;
-}
-
-interface TreatmentOrderService {
-  service_id: number;
-  service_name: string;
-  service_price: number;
-  quantity: number;
-  tooth_number: number;
-  is_completed: number;
 }
 
 interface TreatmentPlan {
@@ -205,7 +185,6 @@ const CreateTreatmentOrder: React.FC = () => {
     
     try {
       const services = await treatmentPlansApi.getPatientServices(patient.id);
-      setPlanServices(services);
       console.log('📋 Загружены услуги из плана лечения:', services);
       
       // Преобразуем услуги из плана лечения в формат для карты зубов

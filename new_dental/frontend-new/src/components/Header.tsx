@@ -14,11 +14,6 @@ const Header: React.FC<HeaderProps> = ({ clinicName = "DentalCare" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  // Определяем, находится ли пользователь в своем кабинете
-  const isInDoctorCabinet = location.pathname === '/doctor';
-  const isInAdminPanel = location.pathname === '/admin';
-  const isInPatientsPage = location.pathname === '/patients';
-  const isInPatientDashboard = location.pathname.startsWith('/patient/');
 
   const handleHome = () => {
     navigate('/');

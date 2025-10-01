@@ -638,7 +638,7 @@ const AlternativeCalendar: React.FC<AlternativeCalendarProps> = ({ doctorId, onN
           }}
           date={selectedDate}
           time={selectedTime}
-          appointment={editingAppointment}
+          appointment={editingAppointment as any}
           doctorId={doctorId}
           onAppointmentCreated={() => {
             setShowAppointmentModal(false);

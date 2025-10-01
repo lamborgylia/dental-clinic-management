@@ -20,7 +20,6 @@ interface Clinic {
 }
 
 const Admin: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
