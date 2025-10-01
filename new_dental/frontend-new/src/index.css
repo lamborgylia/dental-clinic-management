@@ -1,0 +1,184 @@
+/* Базовые стили */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f9fafb;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.button {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Глобальные адаптивные стили */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Адаптивные таблицы */
+.responsive-table-container {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: clamp(0.5rem, 2vw, 1rem);
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+}
+
+.responsive-table th {
+  background-color: #f9fafb;
+  font-weight: 500;
+}
+
+/* Адаптивные кнопки */
+.responsive-button {
+  padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 2vw, 1rem);
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: clamp(0.7rem, 2vw, 0.875rem);
+  white-space: nowrap;
+}
+
+/* Адаптивная навигация */
+.responsive-nav {
+  display: flex;
+  gap: clamp(0.25rem, 1vw, 0.5rem);
+  flex-wrap: wrap;
+  padding: clamp(0.5rem, 2vw, 1rem);
+  width: 100%;
+  max-width: 100%;
+}
+
+.responsive-nav button {
+  flex: 1;
+  min-width: fit-content;
+  padding: clamp(0.5rem, 2vw, 1rem) clamp(0.75rem, 3vw, 1.5rem);
+  border: none;
+  cursor: pointer;
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #374151;
+}
+
+.responsive-nav button.active {
+  background-color: #2563eb;
+  color: white;
+  border-bottom-color: #2563eb;
+}
+
+/* Адаптивный контейнер */
+.responsive-container {
+  padding: clamp(0.5rem, 2vw, 2rem);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Медиа-запросы для мобильных */
+@media (max-width: 768px) {
+  .responsive-table {
+    min-width: 500px;
+  }
+  
+  .responsive-table th,
+  .responsive-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+  
+  .responsive-nav {
+    justify-content: center;
+  }
+  
+  .responsive-nav button {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-table {
+    min-width: 400px;
+  }
+  
+  .responsive-table th,
+  .responsive-table td {
+    padding: 0.25rem;
+    font-size: 0.7rem;
+  }
+  
+  .responsive-nav button {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
