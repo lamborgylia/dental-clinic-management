@@ -29,9 +29,7 @@ const TeethMap: React.FC<TeethMapProps> = ({
   selectedTeeth: externalSelectedTeeth,
   onToothSelect,
   teethServices: externalTeethServices,
-  onAddServiceToTooth,
-  onRemoveServiceFromTooth,
-  onClearSelection
+  onAddServiceToTooth
 }) => {
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>(externalSelectedTeeth || []);
   
@@ -264,16 +262,6 @@ const TeethMap: React.FC<TeethMapProps> = ({
   };
 
   // Удаление услуг для зуба
-  const handleRemoveToothServices = (toothId: number) => {
-    console.log('🗑️ Удаляем услуги для зуба:', toothId);
-    
-    const newToothServices = toothServices.filter(ts => ts.toothId !== toothId);
-    setToothServices(newToothServices);
-    onToothServicesChange(newToothServices);
-    
-    // Обновляем цвета всех зубов
-    updateAllTeethColors();
-  };
 
   // Обновляем цвета всех зубов
   const updateAllTeethColors = () => {

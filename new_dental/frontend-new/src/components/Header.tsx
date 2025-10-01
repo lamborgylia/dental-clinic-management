@@ -19,9 +19,6 @@ const Header: React.FC<HeaderProps> = ({ clinicName = "DentalCare" }) => {
   const isInAdminPanel = location.pathname === '/admin';
   const isInPatientsPage = location.pathname === '/patients';
   const isInPatientDashboard = location.pathname.startsWith('/patient/');
-  
-  // Общая проверка - находится ли пользователь в своем кабинете
-  const isInOwnCabinet = isInDoctorCabinet || isInAdminPanel || isInPatientsPage || isInPatientDashboard;
 
   const handleHome = () => {
     navigate('/');
@@ -36,27 +33,6 @@ const Header: React.FC<HeaderProps> = ({ clinicName = "DentalCare" }) => {
     navigate('/');
   };
 
-  const handleDashboard = () => {
-    if (user) {
-      switch (user.role) {
-        case 'admin':
-          navigate('/admin');
-          break;
-        case 'doctor':
-        case 'nurse':
-          navigate('/doctor');
-          break;
-        case 'registrar':
-          navigate('/patients');
-          break;
-        case 'patient':
-          navigate('/patient/1');
-          break;
-        default:
-          navigate('/login');
-      }
-    }
-  };
 
   const handleAdminPanel = () => {
     if (user && user.role === 'admin') {

@@ -35,7 +35,6 @@ const TreatmentOrderModal: React.FC<TreatmentOrderModalProps> = ({
   isOpen,
   onClose,
   patient,
-  appointmentId,
   onSuccess
 }) => {
   const [services, setServices] = useState<Service[]>([]);

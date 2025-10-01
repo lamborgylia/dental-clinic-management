@@ -1,5 +1,5 @@
 import api from './api';
-import type { TreatmentOrder, TreatmentOrderCreate, TreatmentOrderService } from '../types/treatmentOrder';
+import type { TreatmentOrder, TreatmentOrderCreate } from '../types/treatmentOrder';
 
 // Реэкспортируем типы для обратной совместимости
 export type { TreatmentOrder, TreatmentOrderCreate, TreatmentOrderService } from '../types/treatmentOrder';

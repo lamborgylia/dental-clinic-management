@@ -341,7 +341,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
         if (patient) {
           console.log('✅ Пациент найден, заполняем поля:', patient);
           isAutoFilling.current = true;
-          setExistingPatient(patient);
+          setExistingPatient(patient as Patient);
           setFormData(prev => ({
             ...prev,
             full_name: patient.full_name || '',
@@ -413,7 +413,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
         if (patient) {
           console.log('✅ Пациент найден по телефону, заполняем поля:', patient);
           isAutoFilling.current = true;
-          setExistingPatient(patient);
+          setExistingPatient(patient as Patient);
           const patientDigitsPhone = (patient.phone || '').replace(/\D/g, '');
           setFormData(prev => ({
             ...prev,

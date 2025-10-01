@@ -88,7 +88,6 @@ const CreateTreatmentOrder: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
-  const [planServices, setPlanServices] = useState<TreatmentPlanService[]>([]);
   const [toothServices, setToothServices] = useState<ToothService[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedToothService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -372,7 +371,7 @@ const CreateTreatmentOrder: React.FC = () => {
         status: 'completed'
       };
 
-      const response = await api.post('/treatment-orders/', treatmentOrderData);
+      await api.post('/treatment-orders/', treatmentOrderData);
       
       // Обновляем план лечения с новыми услугами, если они были добавлены через карту зубов
       const newServicesFromTeeth = selectedServices.filter(s => !s.is_from_plan);

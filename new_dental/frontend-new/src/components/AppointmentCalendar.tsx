@@ -114,9 +114,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
     });
   };
 
-  const goToCurrentWeek = () => {
-    setCurrentDate(new Date());
-  };
 
   const goToToday = () => {
     setCurrentDate(new Date());

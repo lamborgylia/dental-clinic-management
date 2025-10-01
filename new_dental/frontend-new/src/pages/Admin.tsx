@@ -67,11 +67,6 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
 
   const toggleUserStatus = async (userId: number, currentStatus: boolean) => {
     try {

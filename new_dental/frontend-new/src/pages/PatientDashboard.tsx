@@ -449,6 +449,7 @@ const PatientDashboard: React.FC = () => {
                     onToothSelect={() => {}}
                     services={services}
                     teethServices={teethServices}
+                    onToothServicesChange={() => {}}
                   />
                 </div>
                 
