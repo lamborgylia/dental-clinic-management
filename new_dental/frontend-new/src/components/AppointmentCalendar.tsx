@@ -496,7 +496,6 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
       </div>
 
       {/* Модал записи на прием */}
-      {console.log('🎭 Рендер модала:', { isModalOpen, selectedDate, selectedTime })}
       {isModalOpen && selectedDate && selectedTime && (
         <AppointmentModal
           isOpen={isModalOpen}

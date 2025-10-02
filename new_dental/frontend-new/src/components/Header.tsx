@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 
 interface HeaderProps {
@@ -8,7 +8,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ clinicName = "DentalCare" }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const user = authService.getUser();
   const token = authService.getToken();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

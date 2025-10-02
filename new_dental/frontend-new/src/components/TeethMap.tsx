@@ -28,7 +28,6 @@ const TeethMap: React.FC<TeethMapProps> = ({
   onToothServicesChange,
   selectedTeeth: externalSelectedTeeth,
   onToothSelect,
-  teethServices,
   onAddServiceToTooth
 }) => {
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>(externalSelectedTeeth || []);
