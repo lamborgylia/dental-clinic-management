@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { treatmentOrdersApi } from '../services/treatmentOrdersApi';
-import type { TreatmentOrderCreate, TreatmentOrderService } from '../types/treatmentOrder';
+import type { TreatmentOrderCreate, TreatmentOrderService, TreatmentOrder } from '../types/treatmentOrder';
+import TreatmentOrderPDFGenerator from './TreatmentOrderPDFGenerator';
 
 interface Patient {
   id: number;
@@ -42,6 +43,7 @@ const TreatmentOrderModal: React.FC<TreatmentOrderModalProps> = ({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [createdTreatmentOrder, setCreatedTreatmentOrder] = useState<TreatmentOrder | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -129,14 +131,17 @@ const TreatmentOrderModal: React.FC<TreatmentOrderModalProps> = ({
         services: selectedServices
       };
 
-      await treatmentOrdersApi.create(treatmentOrder);
+      const createdOrder = await treatmentOrdersApi.create(treatmentOrder);
+      
+      // Сохраняем созданный наряд для генерации PDF
+      setCreatedTreatmentOrder(createdOrder);
       
       // Очистить форму
       setSelectedServices([]);
       setNotes('');
       
       onSuccess?.();
-      onClose();
+      // Не закрываем модалку сразу, чтобы можно было создать PDF
     } catch (error) {
       console.error('Error creating treatment order:', error);
       alert('Ошибка при создании наряда');
@@ -370,11 +375,36 @@ const TreatmentOrderModal: React.FC<TreatmentOrderModalProps> = ({
           />
         </div>
 
+        {createdTreatmentOrder && (
+          <div style={{
+            backgroundColor: '#f0f9ff',
+            border: '1px solid #0ea5e9',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '16px',
+            textAlign: 'center'
+          }}>
+            <h4 style={{ color: '#0369a1', margin: '0 0 8px 0' }}>
+              ✅ Наряд успешно создан!
+            </h4>
+            <p style={{ color: '#0c4a6e', margin: '0' }}>
+              Номер наряда: #{createdTreatmentOrder.id}
+            </p>
+          </div>
+        )}
+
         <div style={{
           display: 'flex',
           gap: '1rem',
           justifyContent: 'flex-end'
         }}>
+          {createdTreatmentOrder && patient && (
+            <TreatmentOrderPDFGenerator
+              treatmentOrder={createdTreatmentOrder}
+              patient={patient}
+              services={services}
+            />
+          )}
           <button
             onClick={onClose}
             disabled={loading}
@@ -388,23 +418,25 @@ const TreatmentOrderModal: React.FC<TreatmentOrderModalProps> = ({
               opacity: loading ? 0.5 : 1
             }}
           >
-            Отмена
+            {createdTreatmentOrder ? 'Закрыть' : 'Отмена'}
           </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading || selectedServices.length === 0}
-            style={{
-              backgroundColor: selectedServices.length === 0 ? '#9ca3af' : '#059669',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.5rem',
-              cursor: selectedServices.length === 0 || loading ? 'not-allowed' : 'pointer',
-              opacity: selectedServices.length === 0 || loading ? 0.5 : 1
-            }}
-          >
-            {loading ? 'Создание...' : 'Создать наряд'}
-          </button>
+          {!createdTreatmentOrder && (
+            <button
+              onClick={handleSubmit}
+              disabled={loading || selectedServices.length === 0}
+              style={{
+                backgroundColor: selectedServices.length === 0 ? '#9ca3af' : '#059669',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                cursor: selectedServices.length === 0 || loading ? 'not-allowed' : 'pointer',
+                opacity: selectedServices.length === 0 || loading ? 0.5 : 1
+              }}
+            >
+              {loading ? 'Создание...' : 'Создать наряд'}
+            </button>
+          )}
         </div>
       </div>
     </div>
