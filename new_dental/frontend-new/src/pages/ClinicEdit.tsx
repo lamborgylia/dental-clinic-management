@@ -374,36 +374,42 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ФИО</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Телефон</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Роль</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {staff.map(user => (
-                    <tr key={user.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.full_name}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.phone}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.role}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          backgroundColor: user.is_active ? '#dcfce7' : '#fee2e2',
-                          color: user.is_active ? '#166534' : '#dc2626'
-                        }}>
-                          {user.is_active ? 'Активен' : 'Неактивен'}
-                        </span>
-                      </td>
+              {Array.isArray(staff) && staff.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ФИО</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Телефон</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Роль</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {staff.map(user => (
+                      <tr key={user.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.full_name}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.phone}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{user.role}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: user.is_active ? '#dcfce7' : '#fee2e2',
+                            color: user.is_active ? '#166534' : '#dc2626'
+                          }}>
+                            {user.is_active ? 'Активен' : 'Неактивен'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных о персонале</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -429,36 +435,42 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Название</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Цена</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Описание</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.map(service => (
-                    <tr key={service.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.name}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.price.toLocaleString()} ₸</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.description}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          backgroundColor: service.is_active ? '#dcfce7' : '#fee2e2',
-                          color: service.is_active ? '#166534' : '#dc2626'
-                        }}>
-                          {service.is_active ? 'Активна' : 'Неактивна'}
-                        </span>
-                      </td>
+              {Array.isArray(services) && services.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Название</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Цена</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Описание</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {services.map(service => (
+                      <tr key={service.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.name}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.price.toLocaleString()} ₸</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{service.description}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: service.is_active ? '#dcfce7' : '#fee2e2',
+                            color: service.is_active ? '#166534' : '#dc2626'
+                          }}>
+                            {service.is_active ? 'Активна' : 'Неактивна'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных об услугах</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -484,26 +496,32 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ФИО</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Телефон</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ИИН</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата рождения</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {patients.map(patient => (
-                    <tr key={patient.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.full_name}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.phone}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.iin}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.birth_date}</td>
+              {Array.isArray(patients) && patients.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ФИО</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Телефон</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ИИН</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата рождения</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {patients.map(patient => (
+                      <tr key={patient.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.full_name}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.phone}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.iin}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.birth_date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных о пациентах</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -529,38 +547,44 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата и время</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Примечания</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.map(appointment => (
-                    <tr key={appointment.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{appointment.id}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        {new Date(appointment.appointment_datetime).toLocaleString('ru-RU')}
-                      </td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          backgroundColor: appointment.status === 'completed' ? '#dcfce7' : '#fef3c7',
-                          color: appointment.status === 'completed' ? '#166534' : '#92400e'
-                        }}>
-                          {appointment.status === 'completed' ? 'Завершена' : 'Запланирована'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{appointment.notes}</td>
+              {Array.isArray(appointments) && appointments.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата и время</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Примечания</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {appointments.map(appointment => (
+                      <tr key={appointment.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{appointment.id}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {new Date(appointment.appointment_datetime).toLocaleString('ru-RU')}
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: appointment.status === 'completed' ? '#dcfce7' : '#fef3c7',
+                            color: appointment.status === 'completed' ? '#166534' : '#92400e'
+                          }}>
+                            {appointment.status === 'completed' ? 'Завершена' : 'Запланирована'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{appointment.notes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных о записях</p>
+        </div>
+      )}
             </div>
           </div>
         );
@@ -586,38 +610,44 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Диагноз</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата создания</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {treatmentPlans.map(plan => (
-                    <tr key={plan.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{plan.id}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{plan.diagnosis}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          backgroundColor: plan.status === 'completed' ? '#dcfce7' : '#fef3c7',
-                          color: plan.status === 'completed' ? '#166534' : '#92400e'
-                        }}>
-                          {plan.status === 'completed' ? 'Завершен' : 'В процессе'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        {new Date(plan.created_at).toLocaleDateString('ru-RU')}
-                      </td>
+              {Array.isArray(treatmentPlans) && treatmentPlans.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Диагноз</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата создания</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {treatmentPlans.map(plan => (
+                      <tr key={plan.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{plan.id}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{plan.diagnosis}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: plan.status === 'completed' ? '#dcfce7' : '#fef3c7',
+                            color: plan.status === 'completed' ? '#166534' : '#92400e'
+                          }}>
+                            {plan.status === 'completed' ? 'Завершен' : 'В процессе'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {new Date(plan.created_at).toLocaleDateString('ru-RU')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных о планах лечения</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -643,40 +673,46 @@ const ClinicEdit: React.FC = () => {
               </button>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Сумма</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата создания</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {treatmentOrders.map(order => (
-                    <tr key={order.id}>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{order.id}</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{order.total_amount.toLocaleString()} ₸</td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        <span style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          backgroundColor: order.status === 'completed' ? '#dcfce7' : '#fef3c7',
-                          color: order.status === 'completed' ? '#166534' : '#92400e'
-                        }}>
-                          {order.status === 'completed' ? 'Завершен' : 'В процессе'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                        {new Date(order.created_at).toLocaleDateString('ru-RU')}
-                      </td>
+              {Array.isArray(treatmentOrders) && treatmentOrders.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Сумма</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата создания</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-        </div>
-        </div>
+                  </thead>
+                  <tbody>
+                    {treatmentOrders.map(order => (
+                      <tr key={order.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>#{order.id}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{order.total_amount.toLocaleString()} ₸</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: order.status === 'completed' ? '#dcfce7' : '#fef3c7',
+                            color: order.status === 'completed' ? '#166534' : '#92400e'
+                          }}>
+                            {order.status === 'completed' ? 'Завершен' : 'В процессе'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <p>Нет данных о нарядах</p>
+                </div>
+              )}
+            </div>
+          </div>
         );
 
       default:
