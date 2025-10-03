@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..core.database import get_db
 from ..core.dependencies import require_registrar_or_above
 from ..models.user import User
@@ -20,6 +20,8 @@ async def get_appointments(
     current_week_only: bool = False,
     start_date: str = None,
     end_date: str = None,
+    clinic_id: Optional[int] = Query(None, description="ID клиники для фильтрации"),
+    search: Optional[str] = Query(None, description="Поиск по имени пациента, телефону или ИИН"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_registrar_or_above)
 ):
@@ -33,6 +35,20 @@ async def get_appointments(
         query = query.filter(Appointment.doctor_id == doctor_id)
     if status:
         query = query.filter(Appointment.status == status)
+    
+    # Фильтрация по клинике
+    if clinic_id:
+        from ..models.user import User
+        query = query.join(User, Appointment.doctor_id == User.id).filter(User.clinic_id == clinic_id)
+    
+    # Поиск по данным пациента
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            (Patient.full_name.ilike(search_term)) |
+            (Patient.phone.ilike(search_term)) |
+            (Patient.iin.ilike(search_term))
+        )
     
     # Фильтр по текущей неделе
     if current_week_only:

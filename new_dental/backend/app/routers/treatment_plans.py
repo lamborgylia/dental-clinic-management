@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..core.database import get_db
 from ..core.dependencies import require_medical_staff
 from ..models.user import User
@@ -16,6 +16,8 @@ async def get_treatment_plans(
     limit: int = 100,
     patient_id: int = None,
     doctor_id: int = None,
+    clinic_id: Optional[int] = Query(None, description="ID клиники для фильтрации"),
+    search: Optional[str] = Query(None, description="Поиск по имени пациента, телефону или ИИН"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_medical_staff)
 ):
@@ -28,6 +30,20 @@ async def get_treatment_plans(
         query = query.filter(TreatmentPlan.patient_id == patient_id)
     if doctor_id:
         query = query.filter(TreatmentPlan.doctor_id == doctor_id)
+    
+    # Фильтрация по клинике
+    if clinic_id:
+        from ..models.user import User
+        query = query.join(User, TreatmentPlan.doctor_id == User.id).filter(User.clinic_id == clinic_id)
+    
+    # Поиск по данным пациента
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            (Patient.full_name.ilike(search_term)) |
+            (Patient.phone.ilike(search_term)) |
+            (Patient.iin.ilike(search_term))
+        )
     
     treatment_plans = query.offset(skip).limit(limit).all()
     

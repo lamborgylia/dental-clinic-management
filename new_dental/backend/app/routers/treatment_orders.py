@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import List, Optional
@@ -24,14 +24,33 @@ router = APIRouter()
 async def get_treatment_orders(
     skip: int = 0,
     limit: int = 100,
+    clinic_id: Optional[int] = Query(None, description="ID клиники для фильтрации"),
+    search: Optional[str] = Query(None, description="Поиск по имени пациента, телефону или ИИН"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Получить список нарядов клиники"""
-    # Получаем наряды для клиники текущего пользователя
-    treatment_orders = db.query(TreatmentOrder).filter(
-        TreatmentOrder.clinic_id == current_user.clinic_id
-    ).order_by(desc(TreatmentOrder.created_at)).offset(skip).limit(limit).all()
+    # Получаем наряды для клиники
+    query = db.query(TreatmentOrder)
+    
+    # Фильтрация по клинике
+    if clinic_id:
+        query = query.filter(TreatmentOrder.clinic_id == clinic_id)
+    else:
+        # Если не указана клиника, используем клинику текущего пользователя
+        query = query.filter(TreatmentOrder.clinic_id == current_user.clinic_id)
+    
+    # Поиск по данным пациента
+    if search:
+        query = query.join(Patient, TreatmentOrder.patient_id == Patient.id)
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            (Patient.full_name.ilike(search_term)) |
+            (Patient.phone.ilike(search_term)) |
+            (Patient.iin.ilike(search_term))
+        )
+    
+    treatment_orders = query.order_by(desc(TreatmentOrder.created_at)).offset(skip).limit(limit).all()
     
     result = []
     for order in treatment_orders:

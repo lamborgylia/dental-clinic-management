@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useClinic } from '../contexts/ClinicContext';
@@ -20,13 +20,19 @@ interface Service {
   is_active: boolean;
 }
 
-interface Patient {
+interface ClinicPatient {
   id: number;
-  full_name: string;
-  phone: string;
-  iin: string;
-  birth_date: string;
   clinic_id: number;
+  patient_id: number;
+  first_visit_date: string;
+  last_visit_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  patient_name: string;
+  patient_phone: string;
+  patient_iin: string;
+  clinic_name: string;
 }
 
 interface Appointment {
@@ -68,10 +74,16 @@ const ClinicEdit: React.FC = () => {
   // Данные для разных вкладок
   const [staff, setStaff] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients, setPatients] = useState<ClinicPatient[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
   const [treatmentOrders, setTreatmentOrders] = useState<TreatmentOrder[]>([]);
+  
+  // Состояние поиска
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -112,7 +124,7 @@ const ClinicEdit: React.FC = () => {
           setServices(servicesRes.data);
           break;
         case 'patients':
-          const patientsRes = await api.get(`/patients/?clinic_id=${clinicId}`);
+          const patientsRes = await api.get('/clinic-patients/');
           setPatients(patientsRes.data);
           break;
         case 'appointments':
@@ -132,6 +144,121 @@ const ClinicEdit: React.FC = () => {
       console.error(`Ошибка загрузки данных для вкладки ${activeTab}:`, error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const searchInClinic = async (query: string) => {
+    if (!query.trim() || !clinicId) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    console.log('🔍 Начинаем поиск:', { query: query.trim(), clinicId });
+    console.log('👤 Текущий пользователь:', JSON.parse(localStorage.getItem('user') || '{}'));
+
+    try {
+      const results: any[] = [];
+
+      // Поиск пациентов
+      try {
+        console.log('🔍 Поиск пациентов...');
+        
+        // Сначала проверим, можем ли мы получить всех пациентов
+        const allPatientsRes = await api.get('/clinic-patients/');
+        console.log('📋 Все пациенты клиники:', allPatientsRes.data);
+        
+        const patientsRes = await api.get('/clinic-patients/', {
+          params: { search: query.trim() }
+        });
+        console.log('📋 Результат поиска пациентов:', patientsRes.data);
+        if (patientsRes.data && Array.isArray(patientsRes.data)) {
+          patientsRes.data.forEach((patient: any) => {
+            results.push({
+              type: 'patient',
+              id: patient.id,
+              title: patient.patient_name,
+              subtitle: `Телефон: ${patient.patient_phone} | ИИН: ${patient.patient_iin}`,
+              data: patient
+            });
+          });
+        }
+      } catch (error) {
+        console.error('❌ Ошибка поиска пациентов:', error);
+        console.error('❌ Детали ошибки:', error.response?.data);
+      }
+
+      // Поиск записей
+      try {
+        console.log('🔍 Поиск записей...');
+        const appointmentsRes = await api.get('/appointments/', {
+          params: { search: query.trim(), clinic_id: clinicId }
+        });
+        console.log('📅 Результат поиска записей:', appointmentsRes.data);
+        if (appointmentsRes.data && Array.isArray(appointmentsRes.data)) {
+          appointmentsRes.data.forEach((appointment: any) => {
+            results.push({
+              type: 'appointment',
+              id: appointment.id,
+              title: `Запись #${appointment.id}`,
+              subtitle: `Пациент: ${appointment.patient_name || 'Неизвестно'} | ${new Date(appointment.appointment_datetime).toLocaleString('ru-RU')}`,
+              data: appointment
+            });
+          });
+        }
+      } catch (error) {
+        console.error('❌ Ошибка поиска записей:', error);
+      }
+
+      // Поиск планов лечения
+      try {
+        console.log('🔍 Поиск планов лечения...');
+        const plansRes = await api.get('/treatment-plans/', {
+          params: { search: query.trim(), clinic_id: clinicId }
+        });
+        console.log('📋 Результат поиска планов:', plansRes.data);
+        if (plansRes.data && Array.isArray(plansRes.data)) {
+          plansRes.data.forEach((plan: any) => {
+            results.push({
+              type: 'treatment_plan',
+              id: plan.id,
+              title: `План лечения #${plan.id}`,
+              subtitle: `Диагноз: ${plan.diagnosis || 'Не указан'} | Статус: ${plan.status}`,
+              data: plan
+            });
+          });
+        }
+      } catch (error) {
+        console.error('❌ Ошибка поиска планов лечения:', error);
+      }
+
+      // Поиск нарядов
+      try {
+        console.log('🔍 Поиск нарядов...');
+        const ordersRes = await api.get('/treatment-orders/', {
+          params: { search: query.trim(), clinic_id: clinicId }
+        });
+        console.log('📄 Результат поиска нарядов:', ordersRes.data);
+        if (ordersRes.data && Array.isArray(ordersRes.data)) {
+          ordersRes.data.forEach((order: any) => {
+            results.push({
+              type: 'treatment_order',
+              id: order.id,
+              title: `Наряд #${order.id}`,
+              subtitle: `Сумма: ${order.total_amount?.toLocaleString()} ₸ | Статус: ${order.status}`,
+              data: order
+            });
+          });
+        }
+      } catch (error) {
+        console.error('❌ Ошибка поиска нарядов:', error);
+      }
+
+      console.log('🎯 Итоговые результаты поиска:', results);
+      setSearchResults(results.slice(0, 10)); // Ограничиваем до 10 результатов
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error('❌ Общая ошибка поиска:', error);
     }
   };
 
@@ -469,8 +596,8 @@ const ClinicEdit: React.FC = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                   <p>Нет данных об услугах</p>
-                </div>
-              )}
+        </div>
+      )}
             </div>
           </div>
         );
@@ -503,16 +630,34 @@ const ClinicEdit: React.FC = () => {
                       <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ФИО</th>
                       <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Телефон</th>
                       <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ИИН</th>
-                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Дата рождения</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Первое посещение</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Последнее посещение</th>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Статус</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {patients.map(patient => (
-                      <tr key={patient.id}>
-                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.full_name}</td>
-                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.phone}</td>
-                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.iin}</td>
-                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{patient.birth_date}</td>
+                    {patients.map(clinicPatient => (
+                      <tr key={clinicPatient.id}>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{clinicPatient.patient_name}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{clinicPatient.patient_phone}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>{clinicPatient.patient_iin}</td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {new Date(clinicPatient.first_visit_date).toLocaleDateString('ru-RU')}
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {clinicPatient.last_visit_date ? new Date(clinicPatient.last_visit_date).toLocaleDateString('ru-RU') : 'Не было'}
+                        </td>
+                        <td style={{ padding: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
+                          <span style={{
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            backgroundColor: clinicPatient.is_active ? '#dcfce7' : '#fee2e2',
+                            color: clinicPatient.is_active ? '#166534' : '#dc2626'
+                          }}>
+                            {clinicPatient.is_active ? 'Активен' : 'Неактивен'}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -520,8 +665,8 @@ const ClinicEdit: React.FC = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                   <p>Нет данных о пациентах</p>
-                </div>
-              )}
+        </div>
+      )}
             </div>
           </div>
         );
@@ -646,8 +791,8 @@ const ClinicEdit: React.FC = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                   <p>Нет данных о планах лечения</p>
-                </div>
-              )}
+        </div>
+      )}
             </div>
           </div>
         );
@@ -709,8 +854,8 @@ const ClinicEdit: React.FC = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                   <p>Нет данных о нарядах</p>
-                </div>
-              )}
+        </div>
+      )}
             </div>
           </div>
         );
@@ -734,6 +879,160 @@ const ClinicEdit: React.FC = () => {
         <p style={{ color: '#6b7280' }}>
           Полное управление клиникой и всеми её данными
         </p>
+        
+        {/* Поиск в клинике */}
+        <div style={{ marginTop: '1rem', position: 'relative' }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchQuery(value);
+              
+              // Очищаем предыдущий таймер
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+              
+              // Устанавливаем новый таймер
+              searchTimeoutRef.current = setTimeout(() => {
+                searchInClinic(value);
+              }, 300);
+            }}
+            placeholder="Поиск пациентов, записей, планов лечения, нарядов в клинике..."
+            style={{
+              width: '100%',
+              maxWidth: '600px',
+              padding: '0.75rem 1rem',
+              paddingRight: '2.5rem',
+              border: '2px solid #e5e7eb',
+              borderRadius: '12px',
+              fontSize: '1rem',
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              backgroundColor: 'white',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onFocus={() => showSearchResults && setShowSearchResults(true)}
+            onBlur={() => {
+              // Задержка для возможности кликнуть по результату
+              setTimeout(() => setShowSearchResults(false), 200);
+            }}
+          />
+          
+          <div style={{
+            position: 'absolute',
+            right: '0.75rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '1.25rem'
+          }}>
+            🔍
+          </div>
+        </div>
+        
+        {/* Результаты поиска */}
+        {showSearchResults && searchResults.length > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            marginTop: '0.5rem'
+          }}>
+            {searchResults.map((result, index) => (
+              <div
+                key={`${result.type}-${result.id}`}
+                onClick={() => {
+                  // Переключаемся на соответствующую вкладку
+                  if (result.type === 'patient') setActiveTab('patients');
+                  else if (result.type === 'appointment') setActiveTab('appointments');
+                  else if (result.type === 'treatment_plan') setActiveTab('treatment_plans');
+                  else if (result.type === 'treatment_order') setActiveTab('treatment_orders');
+                  
+                  setSearchQuery('');
+                  setShowSearchResults(false);
+                }}
+                style={{
+                  padding: '1rem',
+                  borderBottom: index < searchResults.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>
+                  {result.type === 'patient' ? '👤' : 
+                   result.type === 'appointment' ? '📅' : 
+                   result.type === 'treatment_plan' ? '📋' : '📄'}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontWeight: '600',
+                    color: '#1f2937',
+                    marginBottom: '0.25rem'
+                  }}>
+                    {result.title}
+                  </div>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: '#6b7280',
+                    marginBottom: '0.25rem'
+                  }}>
+                    {result.subtitle}
+                  </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: '#059669',
+                    fontWeight: '500'
+                  }}>
+                    {result.type === 'patient' ? 'Пациент' : 
+                     result.type === 'appointment' ? 'Запись' : 
+                     result.type === 'treatment_plan' ? 'План лечения' : 'Наряд'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {showSearchResults && searchResults.length === 0 && searchQuery.trim() && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            padding: '2rem',
+            textAlign: 'center',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
+            <div style={{ color: '#6b7280' }}>Ничего не найдено</div>
+            <div style={{ fontSize: '0.875rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+              Попробуйте изменить поисковый запрос
+            </div>
+          </div>
+        )}
         </div>
 
       {/* Вкладки */}
@@ -768,7 +1067,7 @@ const ClinicEdit: React.FC = () => {
             {tab.label}
           </button>
         ))}
-        </div>
+      </div>
 
       {/* Содержимое вкладки */}
       {renderTabContent()}
