@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 import os
 
 router = APIRouter()
@@ -66,9 +66,66 @@ async def test_db_connection():
             "database_url": "не удалось получить"
         }
 
-@router.post("/create-tables-only")
-async def create_tables_only():
-    """Создает только таблицы без данных"""
+@router.get("/test-sqlalchemy-connection")
+async def test_sqlalchemy_connection():
+    """Тестирует подключение через SQLAlchemy"""
+    
+    try:
+        # Получаем DATABASE_URL из переменных окружения
+        database_url = os.getenv('DATABASE_URL')
+        
+        if not database_url:
+            return {
+                "status": "error",
+                "message": "DATABASE_URL не найден в переменных окружения"
+            }
+        
+        # Пробуем разные способы подключения через SQLAlchemy
+        connection_methods = [
+            ("sslmode=require", lambda: create_engine(database_url, connect_args={"sslmode": "require"})),
+            ("sslmode=prefer", lambda: create_engine(database_url, connect_args={"sslmode": "prefer"})),
+            ("sslmode=disable", lambda: create_engine(database_url, connect_args={"sslmode": "disable"})),
+            ("default", lambda: create_engine(database_url))
+        ]
+        
+        successful_methods = []
+        failed_methods = []
+        
+        for method_name, method_func in connection_methods:
+            try:
+                engine = method_func()
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                successful_methods.append(method_name)
+            except Exception as e:
+                failed_methods.append({
+                    "method": method_name,
+                    "error": str(e)
+                })
+        
+        if successful_methods:
+            return {
+                "status": "success",
+                "message": "Подключение через SQLAlchemy работает!",
+                "successful_methods": successful_methods,
+                "failed_methods": failed_methods
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Не удалось подключиться через SQLAlchemy ни одним способом",
+                "failed_methods": failed_methods
+            }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Ошибка тестирования SQLAlchemy: {str(e)}"
+        }
+
+@router.post("/create-tables-sqlalchemy")
+async def create_tables_sqlalchemy():
+    """Создает таблицы через SQLAlchemy"""
     
     try:
         # Получаем DATABASE_URL из переменных окружения
@@ -77,32 +134,31 @@ async def create_tables_only():
         if not database_url:
             raise HTTPException(status_code=500, detail="DATABASE_URL не найден")
         
-        # Подключение с разными режимами SSL
-        conn = None
+        # Создаем engine с разными настройками SSL
+        engine = None
         connection_methods = [
-            lambda: psycopg2.connect(database_url, sslmode='require'),
-            lambda: psycopg2.connect(database_url, sslmode='prefer'),
-            lambda: psycopg2.connect(database_url, sslmode='disable'),
-            lambda: psycopg2.connect(database_url, connect_timeout=10),
-            lambda: psycopg2.connect(database_url)
+            lambda: create_engine(database_url, connect_args={"sslmode": "require"}),
+            lambda: create_engine(database_url, connect_args={"sslmode": "prefer"}),
+            lambda: create_engine(database_url, connect_args={"sslmode": "disable"}),
+            lambda: create_engine(database_url)
         ]
         
         for i, method in enumerate(connection_methods):
             try:
-                conn = method()
-                print(f"Подключение успешно методом {i+1}")
+                engine = method()
+                # Тестируем подключение
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                print(f"SQLAlchemy подключение успешно методом {i+1}")
                 break
             except Exception as e:
-                print(f"Метод {i+1} не сработал: {e}")
+                print(f"SQLAlchemy метод {i+1} не сработал: {e}")
                 continue
         
-        if not conn:
-            raise Exception("Не удалось подключиться к базе данных ни одним способом")
+        if not engine:
+            raise Exception("Не удалось подключиться через SQLAlchemy ни одним способом")
         
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        cursor = conn.cursor()
-        
-        # Создание только основных таблиц
+        # Создание таблиц
         tables_sql = [
             # Клиники
             """
@@ -254,25 +310,23 @@ async def create_tables_only():
         
         # Создаем таблицы
         created_tables = []
-        for i, sql in enumerate(tables_sql, 1):
-            try:
-                cursor.execute(sql)
-                created_tables.append(f"Таблица {i}")
-            except Exception as e:
-                print(f"Ошибка таблицы {i}: {e}")
-        
-        cursor.close()
-        conn.close()
+        with engine.connect() as conn:
+            for i, sql in enumerate(tables_sql, 1):
+                try:
+                    conn.execute(text(sql))
+                    created_tables.append(f"Таблица {i}")
+                except Exception as e:
+                    print(f"Ошибка таблицы {i}: {e}")
         
         return {
-            "message": "Таблицы успешно созданы!",
+            "message": "Таблицы успешно созданы через SQLAlchemy!",
             "created_tables": created_tables,
             "next_step": "Теперь можно заполнить данными через другие эндпоинты"
         }
         
     except Exception as e:
         error_msg = str(e)
-        print(f"Ошибка создания таблиц: {error_msg}")
+        print(f"Ошибка создания таблиц через SQLAlchemy: {error_msg}")
         
         if "SSL connection has been closed unexpectedly" in error_msg:
             error_msg = "Проблема с SSL подключением к базе данных. Попробуйте позже."
