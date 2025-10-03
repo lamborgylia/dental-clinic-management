@@ -1,8 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from ..core.database import get_db
-from ..core.auth import get_current_user
-from ..models.user import User
+from fastapi import APIRouter, HTTPException
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from datetime import datetime, timedelta
@@ -15,16 +11,9 @@ def hash_password(password: str) -> str:
     """Хеширует пароль"""
     return hashlib.sha256(password.encode()).hexdigest()
 
-@router.post("/deploy-database")
-async def deploy_database(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Деплой базы данных - создание таблиц и заполнение данными"""
-    
-    # Проверяем, что пользователь - администратор
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Доступ запрещен")
+@router.post("/deploy-database-simple")
+async def deploy_database_simple():
+    """Простой деплой базы данных без авторизации"""
     
     try:
         # Получаем DATABASE_URL из переменных окружения
