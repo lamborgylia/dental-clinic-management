@@ -178,22 +178,23 @@ const TeethMap: React.FC<TeethMapProps> = ({
   const handleToothClick = (toothId: number) => {
     console.log('🦷 Клик по зубу:', toothId);
     
-    // Всегда обновляем внутреннее состояние
-    setSelectedTeeth(prev => {
-      const newSelection = prev.includes(toothId) 
-        ? prev.filter(id => id !== toothId)
-        : [...prev, toothId];
-      
-      console.log('🦷 Новый выбор зубов:', newSelection);
-      return newSelection;
-    });
-    
-    // Загружаем уже выбранные услуги для этого зуба (если есть)
-    const existingToothService = toothServices.find(ts => ts.toothId === toothId);
-    if (existingToothService) {
-      setSelectedServices(existingToothService.services);
-    } else {
+    // Если зуб уже выбран, убираем его из выбора
+    if (selectedTeeth.includes(toothId)) {
+      setSelectedTeeth(prev => prev.filter(id => id !== toothId));
       setSelectedServices([]);
+      console.log('🦷 Зуб убран из выбора');
+    } else {
+      // Если зуб не выбран, очищаем предыдущий выбор и выбираем только этот зуб
+      setSelectedTeeth([toothId]);
+      console.log('🦷 Выбран только зуб:', toothId);
+      
+      // Загружаем уже выбранные услуги для этого зуба (если есть)
+      const existingToothService = toothServices.find(ts => ts.toothId === toothId);
+      if (existingToothService) {
+        setSelectedServices(existingToothService.services);
+      } else {
+        setSelectedServices([]);
+      }
     }
     
     // Вызываем внешний обработчик если есть
@@ -260,7 +261,13 @@ const TeethMap: React.FC<TeethMapProps> = ({
     console.log('🦷 Выбор очищен - можно выбирать следующий зуб');
   };
 
-  // Удаление услуг для зуба
+  // Очистка выбора зубов
+  const handleClearSelection = () => {
+    setSelectedTeeth([]);
+    setSelectedServices([]);
+    updateAllTeethColors();
+    console.log('🦷 Выбор зубов очищен');
+  };
 
   // Обновляем цвета всех зубов
   const updateAllTeethColors = () => {
@@ -397,20 +404,14 @@ const TeethMap: React.FC<TeethMapProps> = ({
             
             <button
               className="btn-cancel"
-              onClick={() => {
-                setSelectedTeeth([]);
-                setSelectedServices([]);
-              }}
+              onClick={handleClearSelection}
             >
               Отмена
             </button>
             
             <button
               className="btn-clear"
-              onClick={() => {
-                setSelectedTeeth([]);
-                setSelectedServices([]);
-              }}
+              onClick={handleClearSelection}
               style={{
                 backgroundColor: '#6b7280',
                 color: 'white',
