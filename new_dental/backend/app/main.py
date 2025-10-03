@@ -4,8 +4,8 @@ from .routers import auth_router, patients_router, appointments_router, services
 from .core.database import engine
 from .models import Base
 
-# Создаем таблицы
-Base.metadata.create_all(bind=engine)
+# Создаем таблицы (отключено для деплоя)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Dental Clinic Management System API",
