@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Простой скрипт для инициализации данных
+Скрипт для инициализации данных с правильными SSL настройками
 """
 
 import os
@@ -8,8 +8,8 @@ import sys
 from sqlalchemy import create_engine, text
 from passlib.context import CryptContext
 
-def init_data_simple():
-    """Инициализирует данные простым способом"""
+def init_data_ssl():
+    """Инициализирует данные с правильными SSL настройками"""
     
     database_url = os.getenv('DATABASE_URL')
     
@@ -18,14 +18,21 @@ def init_data_simple():
         return False
     
     try:
-        print("🔗 Подключение к базе данных...")
+        print("🔗 Подключение к базе данных с SSL...")
         
-        # Простое подключение с обязательным SSL
+        # Подключение с SSL и дополнительными параметрами
         engine = create_engine(
             database_url,
             connect_args={
-                "sslmode": "require"
-            }
+                "sslmode": "require",
+                "sslcert": None,
+                "sslkey": None,
+                "sslrootcert": None,
+                "connect_timeout": 30
+            },
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=False
         )
         
         with engine.connect() as conn:
@@ -83,8 +90,8 @@ def init_data_simple():
         return False
 
 if __name__ == "__main__":
-    print("🚀 Простая инициализация данных...")
-    success = init_data_simple()
+    print("🚀 Инициализация данных с SSL...")
+    success = init_data_ssl()
     if success:
         print("🎉 Готово!")
         sys.exit(0)

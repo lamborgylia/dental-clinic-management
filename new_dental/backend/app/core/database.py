@@ -3,14 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import settings
 
-# Создаем подключение с SSL настройками для Render
+# Создаем подключение с обязательным SSL для Render
 engine = create_engine(
     settings.database_url,
     connect_args={
-        "sslmode": "disable"
-    },
-    pool_pre_ping=True,
-    pool_recycle=300
+        "sslmode": "require"
+    }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

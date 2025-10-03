@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Простой скрипт для создания таблиц без SSL проблем
+Скрипт для создания таблиц с правильными SSL настройками
 """
 
 import os
 import sys
 from sqlalchemy import create_engine, text
 
-def create_tables_simple():
-    """Создает таблицы простым способом"""
+def create_tables_ssl():
+    """Создает таблицы с правильными SSL настройками"""
     
     database_url = os.getenv('DATABASE_URL')
     
@@ -17,14 +17,21 @@ def create_tables_simple():
         return False
     
     try:
-        print("🔗 Подключение к базе данных...")
+        print("🔗 Подключение к базе данных с SSL...")
         
-        # Простое подключение с обязательным SSL
+        # Подключение с SSL и дополнительными параметрами
         engine = create_engine(
             database_url,
             connect_args={
-                "sslmode": "require"
-            }
+                "sslmode": "require",
+                "sslcert": None,
+                "sslkey": None,
+                "sslrootcert": None,
+                "connect_timeout": 30
+            },
+            pool_pre_ping=True,
+            pool_recycle=300,
+            echo=False
         )
         
         with engine.connect() as conn:
@@ -176,8 +183,8 @@ def create_tables_simple():
         return False
 
 if __name__ == "__main__":
-    print("🚀 Простое создание таблиц...")
-    success = create_tables_simple()
+    print("🚀 Создание таблиц с SSL...")
+    success = create_tables_ssl()
     if success:
         print("🎉 Готово!")
         sys.exit(0)
