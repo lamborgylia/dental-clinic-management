@@ -8,7 +8,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """Проверяет пароль с помощью bcrypt"""
+    try:
+        import bcrypt
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception as e:
+        print(f"❌ Ошибка проверки пароля: {e}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
