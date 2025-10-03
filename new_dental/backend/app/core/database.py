@@ -7,11 +7,10 @@ from .config import settings
 engine = create_engine(
     settings.database_url,
     connect_args={
-        "sslmode": "require",
-        "sslcert": None,
-        "sslkey": None,
-        "sslrootcert": None
-    }
+        "sslmode": "prefer"
+    },
+    pool_pre_ping=True,
+    pool_recycle=300
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
