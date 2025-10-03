@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface User {
@@ -21,6 +21,7 @@ interface Clinic {
 
 const Admin: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,10 +128,7 @@ const Admin: React.FC = () => {
   };
 
   const openClinicSettings = (clinic: Clinic) => {
-    setSelectedClinic(clinic);
-    setClinicSettingsTab('staff');
-    setShowClinicSettings(true);
-    fetchClinicStaff(clinic.id);
+    navigate(`/clinic/${clinic.id}/edit`);
   };
 
   const fetchClinicStaff = async (clinicId: number) => {

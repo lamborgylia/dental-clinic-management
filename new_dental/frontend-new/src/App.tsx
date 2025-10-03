@@ -11,6 +11,7 @@ import PatientDashboard from './pages/PatientDashboard';
 import TreatmentOrders from './pages/TreatmentOrders';
 import TreatmentOrderDetail from './pages/TreatmentOrderDetail';
 import CreateTreatmentOrder from './pages/CreateTreatmentOrder';
+import ClinicEdit from './pages/ClinicEdit';
 import DebugPage from './pages/DebugPage';
 import MobileAuth from './components/MobileAuth';
 
@@ -62,6 +63,13 @@ const AppContent: React.FC = () => {
         <ProtectedRoute allowedRoles={['admin']}>
           <Layout>
             <Admin />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/clinic/:clinicId/edit" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <Layout clinicName={clinicName}>
+            <ClinicEdit />
           </Layout>
         </ProtectedRoute>
       } />

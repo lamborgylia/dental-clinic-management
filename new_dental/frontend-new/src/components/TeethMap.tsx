@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface Service {
   id: number;
@@ -152,21 +152,13 @@ const TeethMap: React.FC<TeethMapProps> = ({
     // Если у зуба есть услуги - красный
     if (toothService && toothService.services.length > 0) {
       color = '#ef4444';
-      console.log(`🦷 Зуб ${toothId}: красный (есть услуги)`);
     }
     // Если зуб выбран - синий
     else if (selectedTeeth.includes(toothId)) {
       color = '#3b82f6';
-      console.log(`🦷 Зуб ${toothId}: синий (выбран)`);
-    }
-    else {
-      console.log(`🦷 Зуб ${toothId}: серый (по умолчанию)`);
     }
     
-    console.log(`🎨 Обновляем цвет зуба ${toothId}: ${color}`);
     path.setAttribute('fill', color);
-    
-    // Проверяем, что цвет действительно установился
     const actualColor = path.getAttribute('fill');
     if (actualColor !== color) {
       console.warn(`⚠️ Цвет зуба ${toothId} не установился: ожидался ${color}, получился ${actualColor}`);
@@ -276,10 +268,8 @@ const TeethMap: React.FC<TeethMapProps> = ({
   };
 
   // Обновляем цвета всех зубов
-  const updateAllTeethColors = () => {
+  const updateAllTeethColors = useCallback(() => {
     if (!containerRef.current) return;
-    
-    console.log('🎨 Обновляем цвета всех зубов');
     
     const toothPaths = containerRef.current.querySelectorAll('path[class*="tooth-"]');
     toothPaths.forEach((path) => {
@@ -290,9 +280,7 @@ const TeethMap: React.FC<TeethMapProps> = ({
         updateToothColor(path, toothId);
       }
     });
-    
-    console.log('✅ Цвета всех зубов обновлены');
-  };
+  }, [selectedTeeth]);
 
   // Переустанавливаем обработчики событий для зубов
   const reattachEventListeners = () => {
