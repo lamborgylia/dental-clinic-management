@@ -5,11 +5,18 @@ const getBaseURL = () => {
   const { protocol, hostname } = window.location;
   console.log('🔍 Hostname:', hostname);
   
-  // Используем тот же хост, что и фронтенд. Это работает и локально, и по сети (мобильные устройства)
-  // Примеры: localhost -> http://localhost:8001, 192.168.0.13 -> http://192.168.0.13:8001
-  const backendURL = `${protocol}//${hostname}:8001`;
-  console.log('🌐 Using same-host backend URL:', backendURL);
-  return backendURL;
+  // Проверяем, работаем ли мы в продакшене (Render)
+  if (hostname.includes('onrender.com')) {
+    // В продакшене используем тот же хост без порта
+    const backendURL = `${protocol}//${hostname}`;
+    console.log('🌐 Using production backend URL:', backendURL);
+    return backendURL;
+  } else {
+    // Локально используем порт 8001
+    const backendURL = `${protocol}//${hostname}:8001`;
+    console.log('🌐 Using local backend URL:', backendURL);
+    return backendURL;
+  }
 };
 
 const baseURL = getBaseURL();
