@@ -123,17 +123,18 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setIsCreatingUser(false);
-    setShowUserModal(true);
-  };
+  // Функции редактирования удалены, так как модальные окна не используются
+  // const handleEditUser = (user: User) => {
+  //   setEditingUser(user);
+  //   setIsCreatingUser(false);
+  //   setShowUserModal(true);
+  // };
 
-  const handleEditClinic = (clinic: Clinic) => {
-    setEditingClinic(clinic);
-    setIsCreatingClinic(false);
-    setShowClinicModal(true);
-  };
+  // const handleEditClinic = (clinic: Clinic) => {
+  //   setEditingClinic(clinic);
+  //   setIsCreatingClinic(false);
+  //   setShowClinicModal(true);
+  // };
 
   const openClinicSettings = (clinic: Clinic) => {
     navigate(`/clinic/${clinic.id}/edit`);
@@ -255,7 +256,7 @@ const Admin: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleEditUser(user);
+                    alert('Функция редактирования пользователя будет добавлена позже');
                   }}
                   style={{
                     padding: '0.25rem 0.5rem',
@@ -319,7 +320,7 @@ const Admin: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleEditClinic(clinic);
+                    alert('Функция редактирования клиники будет добавлена позже');
                   }}
                   style={{
                     padding: '0.25rem 0.5rem',
