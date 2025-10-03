@@ -20,7 +20,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    """Создает хеш пароля с помощью bcrypt"""
+    try:
+        import bcrypt
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
+    except Exception as e:
+        print(f"❌ Ошибка создания хеша пароля: {e}")
+        raise
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
