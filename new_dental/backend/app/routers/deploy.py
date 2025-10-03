@@ -5,6 +5,67 @@ import os
 
 router = APIRouter()
 
+@router.get("/test-db-connection")
+async def test_db_connection():
+    """Тестирует подключение к базе данных"""
+    
+    try:
+        # Получаем DATABASE_URL из переменных окружения
+        database_url = os.getenv('DATABASE_URL')
+        
+        if not database_url:
+            return {
+                "status": "error",
+                "message": "DATABASE_URL не найден в переменных окружения",
+                "database_url": "не настроен"
+            }
+        
+        # Пробуем разные способы подключения
+        connection_methods = [
+            ("sslmode=require", lambda: psycopg2.connect(database_url, sslmode='require')),
+            ("sslmode=prefer", lambda: psycopg2.connect(database_url, sslmode='prefer')),
+            ("sslmode=disable", lambda: psycopg2.connect(database_url, sslmode='disable')),
+            ("connect_timeout=10", lambda: psycopg2.connect(database_url, connect_timeout=10)),
+            ("default", lambda: psycopg2.connect(database_url))
+        ]
+        
+        successful_methods = []
+        failed_methods = []
+        
+        for method_name, method_func in connection_methods:
+            try:
+                conn = method_func()
+                conn.close()
+                successful_methods.append(method_name)
+            except Exception as e:
+                failed_methods.append({
+                    "method": method_name,
+                    "error": str(e)
+                })
+        
+        if successful_methods:
+            return {
+                "status": "success",
+                "message": "Подключение к базе данных работает!",
+                "successful_methods": successful_methods,
+                "failed_methods": failed_methods,
+                "database_url": database_url[:20] + "..." if len(database_url) > 20 else database_url
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Не удалось подключиться к базе данных ни одним способом",
+                "failed_methods": failed_methods,
+                "database_url": database_url[:20] + "..." if len(database_url) > 20 else database_url
+            }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Ошибка тестирования подключения: {str(e)}",
+            "database_url": "не удалось получить"
+        }
+
 @router.post("/create-tables-only")
 async def create_tables_only():
     """Создает только таблицы без данных"""
