@@ -55,7 +55,9 @@ const AlternativeCalendar: React.FC<AlternativeCalendarProps> = ({ doctorId, onN
       const monthEnd = endOfMonth(currentDate);
       const startDate = format(monthStart, 'yyyy-MM-dd');
       const endDate = format(monthEnd, 'yyyy-MM-dd');
+      console.log('📅 Загружаем записи для месяца:', { startDate, endDate, doctorId });
       const data = await appointmentsApi.getAppointmentsByDateRange(doctorId, startDate, endDate);
+      console.log('📋 Загружены записи:', data);
       setAppointments(data);
     } catch (error) {
       console.error('Ошибка загрузки записей месяца:', error);
@@ -65,6 +67,11 @@ const AlternativeCalendar: React.FC<AlternativeCalendarProps> = ({ doctorId, onN
   useEffect(() => {
     loadMonthAppointments();
   }, [loadMonthAppointments]);
+
+  // Загружаем записи при изменении месяца
+  useEffect(() => {
+    loadMonthAppointments();
+  }, [currentDate, loadMonthAppointments]);
 
   // Получение дней календаря
   const calendarDays = eachDayOfInterval({
@@ -127,10 +134,14 @@ const AlternativeCalendar: React.FC<AlternativeCalendarProps> = ({ doctorId, onN
   // Получение записей для конкретного дня
   const getAppointmentsForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return appointments.filter(apt => {
+    const dayAppointments = appointments.filter(apt => {
       const aptDate = format(new Date(apt.appointment_datetime), 'yyyy-MM-dd');
       return aptDate === dateStr;
     });
+    if (dayAppointments.length > 0) {
+      console.log(`📅 Записи на ${dateStr}:`, dayAppointments);
+    }
+    return dayAppointments;
   };
 
   // Генерация слотов времени
