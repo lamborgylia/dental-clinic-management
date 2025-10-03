@@ -18,6 +18,38 @@ async def test_endpoint():
     return {"message": "Auth router работает!", "status": "ok"}
 
 
+@router.get("/test-password")
+async def test_password_endpoint():
+    """Тестовый эндпоинт для проверки паролей"""
+    try:
+        # Тестируем bcrypt напрямую
+        import bcrypt
+        
+        password = "admin123"
+        password_bytes = password.encode('utf-8')
+        
+        # Создаем хеш
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        
+        # Проверяем хеш
+        is_valid = bcrypt.checkpw(password_bytes, hashed)
+        
+        return {
+            "message": "Тест паролей",
+            "password": password,
+            "hashed": hashed.decode('utf-8'),
+            "is_valid": is_valid,
+            "bcrypt_available": True
+        }
+    except Exception as e:
+        return {
+            "message": "Ошибка теста паролей",
+            "error": str(e),
+            "bcrypt_available": False
+        }
+
+
 @router.post("/login", response_model=dict)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -40,6 +72,8 @@ async def login(
         
         # Проверяем пароль
         print(f"🔐 Проверка пароля...")
+        print(f"🔐 Хеш в БД: {user.password_hash[:20]}...")
+        
         password_valid = verify_password(form_data.password, user.password_hash)
         print(f"🔐 Пароль валиден: {password_valid}")
         
@@ -86,6 +120,8 @@ async def login(
         raise
     except Exception as e:
         print(f"💥 Ошибка в login: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Внутренняя ошибка сервера: {str(e)}"
