@@ -22,11 +22,34 @@ async def deploy_database_simple():
         if not database_url:
             raise HTTPException(status_code=500, detail="DATABASE_URL не найден")
         
-        # Подключение с SSL
-        conn = psycopg2.connect(
-            database_url,
-            sslmode='require'
-        )
+        # Подключение с SSL (пробуем разные режимы)
+        try:
+            # Сначала пробуем с require
+            conn = psycopg2.connect(
+                database_url,
+                sslmode='require'
+            )
+        except Exception as e1:
+            try:
+                # Если не работает, пробуем с prefer
+                conn = psycopg2.connect(
+                    database_url,
+                    sslmode='prefer'
+                )
+            except Exception as e2:
+                try:
+                    # Если и это не работает, пробуем без SSL
+                    conn = psycopg2.connect(
+                        database_url,
+                        sslmode='disable'
+                    )
+                except Exception as e3:
+                    # Последняя попытка - с минимальными настройками
+                    conn = psycopg2.connect(
+                        database_url,
+                        connect_timeout=10,
+                        application_name='dental-clinic-deploy'
+                    )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
         
@@ -358,4 +381,15 @@ async def deploy_database_simple():
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка деплоя: {str(e)}")
+        error_msg = str(e)
+        print(f"Ошибка деплоя: {error_msg}")
+        
+        # Более детальная информация об ошибке
+        if "SSL connection has been closed unexpectedly" in error_msg:
+            error_msg = "Проблема с SSL подключением к базе данных. Попробуйте позже или обратитесь к администратору."
+        elif "connection to server" in error_msg:
+            error_msg = "Не удается подключиться к базе данных. Проверьте настройки подключения."
+        elif "DATABASE_URL не найден" in error_msg:
+            error_msg = "Переменная окружения DATABASE_URL не настроена."
+        
+        raise HTTPException(status_code=500, detail=f"Ошибка деплоя: {error_msg}")
