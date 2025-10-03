@@ -31,7 +31,7 @@ def init_data():
                 engine = create_engine(
                     database_url,
                     connect_args={
-                        "sslmode": "prefer"
+                        "sslmode": "disable"
                     },
                     pool_pre_ping=True,
                     pool_recycle=300

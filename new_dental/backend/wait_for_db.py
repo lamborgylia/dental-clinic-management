@@ -31,7 +31,7 @@ def wait_for_database():
             conn = psycopg2.connect(
                 database_url,
                 connect_timeout=10,
-                sslmode='prefer'
+                sslmode='disable'
             )
             
             # Тестируем подключение

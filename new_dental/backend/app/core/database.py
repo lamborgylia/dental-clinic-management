@@ -7,7 +7,7 @@ from .config import settings
 engine = create_engine(
     settings.database_url,
     connect_args={
-        "sslmode": "prefer"
+        "sslmode": "disable"
     },
     pool_pre_ping=True,
     pool_recycle=300
