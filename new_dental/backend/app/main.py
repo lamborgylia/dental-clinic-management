@@ -44,7 +44,10 @@ app.add_middleware(
         "http://192.168.12.93:5177",
         "http://10.113.0.166:5175",
         "http://10.113.0.166:5176",
-        "http://10.113.0.166:5177"
+        "http://10.113.0.166:5177",
+        # Продакшен адреса
+        "https://dental-care-g4oc.onrender.com",
+        "http://dental-care-g4oc.onrender.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
