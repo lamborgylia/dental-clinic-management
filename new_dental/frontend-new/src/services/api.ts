@@ -7,8 +7,8 @@ const getBaseURL = () => {
   
   // Проверяем, работаем ли мы в продакшене (Render)
   if (hostname.includes('onrender.com')) {
-    // В продакшене используем тот же хост без порта
-    const backendURL = `${protocol}//${hostname}`;
+    // В продакшене используем адрес бэкенда
+    const backendURL = "https://dental-clinic-management-bzsn.onrender.com";
     console.log('🌐 Using production backend URL:', backendURL);
     return backendURL;
   } else {

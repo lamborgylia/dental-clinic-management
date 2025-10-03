@@ -305,11 +305,12 @@ def deploy_database():
         
         service_ids = []
         for name, price, description in services_data:
+            # Привязываем услуги к первой клинике
             cursor.execute("""
-                INSERT INTO services (name, price, description) 
-                VALUES (%s, %s, %s) 
+                INSERT INTO services (name, price, description, clinic_id) 
+                VALUES (%s, %s, %s, %s) 
                 RETURNING id;
-            """, (name, price, description))
+            """, (name, price, description, clinic_ids[0]))
             service_id = cursor.fetchone()[0]
             service_ids.append(service_id)
             print(f"✅ Услуга '{name}' создана (ID: {service_id})")
