@@ -48,13 +48,13 @@ const Admin: React.FC = () => {
   const [patientSearchQuery, setPatientSearchQuery] = useState('');
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   
-  // Модальные окна
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [showClinicModal, setShowClinicModal] = useState(false);
-  const [isCreatingUser, setIsCreatingUser] = useState(false);
-  const [isCreatingClinic, setIsCreatingClinic] = useState(false);
+  // Модальные окна (закомментированы неиспользуемые)
+  // const [editingUser, setEditingUser] = useState<User | null>(null);
+  // const [editingClinic, setEditingClinic] = useState<Clinic | null>(null);
+  // const [showUserModal, setShowUserModal] = useState(false);
+  // const [showClinicModal, setShowClinicModal] = useState(false);
+  // const [isCreatingUser, setIsCreatingUser] = useState(false);
+  // const [isCreatingClinic, setIsCreatingClinic] = useState(false);
 
   useEffect(() => {
     fetchData();

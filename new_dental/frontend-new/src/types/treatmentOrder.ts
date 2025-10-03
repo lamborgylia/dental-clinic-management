@@ -13,6 +13,7 @@ export interface TreatmentOrder {
   created_by_id: number;
   total_amount: number;
   notes?: string;
+  status?: string;
   created_at: string;
   updated_at?: string;
   services: TreatmentOrderService[];

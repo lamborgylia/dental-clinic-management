@@ -1,6 +1,21 @@
 import React from 'react';
 import jsPDF from 'jspdf';
-import type { TreatmentOrder, Patient, Service } from '../types/treatmentOrder';
+import type { TreatmentOrder } from '../types/treatmentOrder';
+
+interface Patient {
+  id: number;
+  full_name: string;
+  phone: string;
+  iin: string;
+  birth_date?: string;
+}
+
+interface Service {
+  id: number;
+  name: string;
+  price: number;
+  description?: string;
+}
 
 interface TreatmentOrderPDFGeneratorProps {
   treatmentOrder: TreatmentOrder;

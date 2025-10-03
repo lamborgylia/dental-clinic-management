@@ -83,7 +83,7 @@ const ClinicEdit: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -183,7 +183,7 @@ const ClinicEdit: React.FC = () => {
             });
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Ошибка поиска пациентов:', error);
         console.error('❌ Детали ошибки:', error.response?.data);
       }
