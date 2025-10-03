@@ -6,6 +6,7 @@
 
 import os
 import sys
+import time
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -20,10 +21,37 @@ def create_tables():
         return False
     
     try:
-        # Создаем подключение к базе данных
-        engine = create_engine(database_url)
-        
-        print("🔗 Подключение к базе данных...")
+        # Создаем подключение к базе данных с SSL настройками для Render
+        # Пробуем несколько раз с задержкой
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                print(f"🔗 Попытка подключения {attempt + 1}/{max_retries}...")
+                engine = create_engine(
+                    database_url,
+                    connect_args={
+                        "sslmode": "require",
+                        "sslcert": None,
+                        "sslkey": None,
+                        "sslrootcert": None
+                    },
+                    pool_pre_ping=True,
+                    pool_recycle=300
+                )
+                
+                # Тестируем подключение
+                with engine.connect() as test_conn:
+                    test_conn.execute(text("SELECT 1"))
+                print("✅ Подключение к базе данных успешно!")
+                break
+                
+            except SQLAlchemyError as e:
+                print(f"⚠️ Попытка {attempt + 1} неудачна: {e}")
+                if attempt < max_retries - 1:
+                    print("⏳ Ждем 5 секунд перед следующей попыткой...")
+                    time.sleep(5)
+                else:
+                    raise e
         
         # Создаем все таблицы
         with engine.connect() as conn:

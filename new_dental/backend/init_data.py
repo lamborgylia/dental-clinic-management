@@ -21,8 +21,16 @@ def init_data():
         return False
     
     try:
-        # Создаем подключение к базе данных
-        engine = create_engine(database_url)
+        # Создаем подключение к базе данных с SSL настройками для Render
+        engine = create_engine(
+            database_url,
+            connect_args={
+                "sslmode": "require",
+                "sslcert": None,
+                "sslkey": None,
+                "sslrootcert": None
+            }
+        )
         
         print("🔗 Подключение к базе данных...")
         
