@@ -82,31 +82,14 @@ async def health_check():
 async def debug_auth():
     """Отладочный эндпоинт для проверки авторизации"""
     try:
-        # Тестируем bcrypt
-        import bcrypt
-        
-        password = "admin123"
-        password_bytes = password.encode('utf-8')
-        
-        # Создаем хеш
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password_bytes, salt)
-        
-        # Проверяем хеш
-        is_valid = bcrypt.checkpw(password_bytes, hashed)
-        
+        # Простая проверка без bcrypt
         return {
             "message": "Отладка авторизации",
-            "bcrypt_available": True,
-            "password_test": {
-                "password": password,
-                "hashed": hashed.decode('utf-8'),
-                "is_valid": is_valid
-            }
+            "status": "ok",
+            "timestamp": "2025-10-03T20:30:00Z"
         }
     except Exception as e:
         return {
             "message": "Ошибка отладки авторизации",
-            "error": str(e),
-            "bcrypt_available": False
+            "error": str(e)
         }
