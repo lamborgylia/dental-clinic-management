@@ -8,6 +8,7 @@ interface Service {
   name: string;
   price: number;
   description?: string;
+  category?: string;
 }
 
 interface Patient {
@@ -40,6 +41,7 @@ interface TreatmentPlan {
   patient_chronic_diseases?: string;
   patient_contraindications?: string;
   patient_special_notes?: string;
+  treatment_description?: string;
 }
 
 // Функция для определения мобильного устройства
@@ -51,14 +53,12 @@ const isMobile = () => {
 const MobileTreatmentPlanPage: React.FC<{
   editingTreatmentPlan: TreatmentPlan | null;
   services: Service[];
-  teethServices: Record<number, number[]>;
   isLoading: boolean;
   isSaving: boolean;
   teethMapRef: React.RefObject<any>;
   selectedToothForServices: number | null;
   toothServicesModal: Service[];
   toothServiceStatuses: Record<number, string>;
-  formatDateTime: (dateString: string | null | undefined) => string;
   handleToothClick: (toothId: number, toothServices: Service[], serviceStatuses: Record<number, string>) => void;
   handleUpdateServiceStatus: (toothId: number, serviceId: number, status: string) => Promise<void>;
   handleRemoveServiceFromTooth: (toothId: number, serviceId: number) => Promise<void>;
@@ -66,24 +66,28 @@ const MobileTreatmentPlanPage: React.FC<{
   saveTreatmentPlan: () => Promise<void>;
   navigate: (path: string) => void;
   setEditingTreatmentPlan: React.Dispatch<React.SetStateAction<TreatmentPlan | null>>;
+  setSelectedToothForServices: React.Dispatch<React.SetStateAction<number | null>>;
+  setToothServicesModal: React.Dispatch<React.SetStateAction<Service[]>>;
+  setToothServiceStatuses: React.Dispatch<React.SetStateAction<Record<number, string>>>;
 }> = ({
   editingTreatmentPlan,
   services,
-  teethServices,
   isLoading,
   isSaving,
   teethMapRef,
   selectedToothForServices,
   toothServicesModal,
   toothServiceStatuses,
-  formatDateTime,
   handleToothClick,
   handleUpdateServiceStatus,
   handleRemoveServiceFromTooth,
   handleToothServicesChange,
   saveTreatmentPlan,
   navigate,
-  setEditingTreatmentPlan
+  setEditingTreatmentPlan,
+  setSelectedToothForServices,
+  setToothServicesModal,
+  setToothServiceStatuses
 }) => {
   if (isLoading) {
     return (
@@ -378,10 +382,17 @@ const MobileTreatmentPlanPage: React.FC<{
           }}
           onAddServiceToTooth={(toothId, serviceId) => {
             console.log('🦷 Добавлена услуга к зубу:', toothId, serviceId);
-            setTeethServices(prev => ({
-              ...prev,
-              [toothId]: [...(prev[toothId] || []), serviceId]
-            }));
+            setEditingTreatmentPlan(prev => {
+              if (!prev) return null;
+              const currentTeethServices = prev.teethServices || {};
+              return {
+                ...prev,
+                teethServices: {
+                  ...currentTeethServices,
+                  [toothId]: [...(currentTeethServices[toothId] || []), serviceId]
+                }
+              };
+            });
           }}
           onClearSelection={() => {
             console.log('🦷 Очищен выбор зубов');
@@ -718,7 +729,7 @@ const TreatmentPlanPage: React.FC = () => {
   
   const [editingTreatmentPlan, setEditingTreatmentPlan] = useState<TreatmentPlan | null>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients] = useState<Patient[]>([]);
   const [teethServices, setTeethServices] = useState<Record<number, number[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -837,7 +848,7 @@ const TreatmentPlanPage: React.FC = () => {
       }
 
       // Обновляем список услуг, убирая удаляемую
-      const updatedServiceIds = toothServiceData.services.filter(s => s.id !== serviceId).map(s => s.id);
+      const updatedServiceIds = toothServiceData.services.filter((s: any) => s.id !== serviceId).map((s: any) => s.id);
       
       // Обновляем через API
       await api.put(`/tooth-services/${toothServiceData.id}`, {
@@ -863,7 +874,7 @@ const TreatmentPlanPage: React.FC = () => {
           if (ts.toothId === toothId) {
             return {
               ...ts,
-              services: ts.services.filter(s => s.id !== serviceId),
+              services: ts.services.filter((s: any) => s.id !== serviceId),
               serviceStatuses: Object.fromEntries(
                 Object.entries(ts.serviceStatuses || {}).filter(([id]) => id !== serviceId.toString())
               )
@@ -890,7 +901,7 @@ const TreatmentPlanPage: React.FC = () => {
     
     const newTeethServices: Record<number, number[]> = {};
     newToothServices.forEach(ts => {
-      newTeethServices[ts.toothId] = ts.services.map(s => s.id);
+      newTeethServices[ts.toothId] = ts.services.map((s: any) => s.id);
     });
     setTeethServices(newTeethServices);
     
@@ -1081,7 +1092,7 @@ const TreatmentPlanPage: React.FC = () => {
       // Обновляем план лечения в БД
       await api.put(`/treatment-plans/${planId}`, {
         diagnosis: updatedPlan.diagnosis,
-        notes: updatedPlan.treatment_description || updatedPlan.notes,
+        notes: updatedPlan.notes,
         patient_allergies: updatedPlan.patient_allergies,
         patient_chronic_diseases: updatedPlan.patient_chronic_diseases,
         patient_contraindications: updatedPlan.patient_contraindications,
@@ -1142,20 +1153,20 @@ const TreatmentPlanPage: React.FC = () => {
     }
   };
 
-  const markTeethAsTreated = (toothIds: number[]) => {
-    if (!editingTreatmentPlan) return;
-    
-    const currentTreatedTeeth = editingTreatmentPlan.treated_teeth || [];
-    const newTreatedTeeth = [...new Set([...currentTreatedTeeth, ...toothIds])];
-    
-    setEditingTreatmentPlan({
-      ...editingTreatmentPlan,
-      treated_teeth: newTreatedTeeth
-    });
-    
-    console.log('✅ Зубы отмечены как вылеченные:', toothIds);
-    console.log('🦷 Все вылеченные зубы:', newTreatedTeeth);
-  };
+  // const markTeethAsTreated = (toothIds: number[]) => {
+  //   if (!editingTreatmentPlan) return;
+  //   
+  //   const currentTreatedTeeth = editingTreatmentPlan.treated_teeth || [];
+  //   const newTreatedTeeth = [...new Set([...currentTreatedTeeth, ...toothIds])];
+  //   
+  //   setEditingTreatmentPlan({
+  //     ...editingTreatmentPlan,
+  //     treated_teeth: newTreatedTeeth
+  //   });
+  //   
+  //   console.log('✅ Зубы отмечены как вылеченные:', toothIds);
+  //   console.log('🦷 Все вылеченные зубы:', newTreatedTeeth);
+  // };
 
   if (isLoading) {
     return (
@@ -1193,14 +1204,12 @@ const TreatmentPlanPage: React.FC = () => {
       <MobileTreatmentPlanPage
         editingTreatmentPlan={editingTreatmentPlan}
         services={services}
-        teethServices={teethServices}
         isLoading={isLoading}
         isSaving={isSaving}
         teethMapRef={teethMapRef}
         selectedToothForServices={selectedToothForServices}
         toothServicesModal={toothServicesModal}
         toothServiceStatuses={toothServiceStatuses}
-        formatDateTime={formatDateTime}
         handleToothClick={handleToothClick}
         handleUpdateServiceStatus={handleUpdateServiceStatus}
         handleRemoveServiceFromTooth={handleRemoveServiceFromTooth}
@@ -1208,6 +1217,9 @@ const TreatmentPlanPage: React.FC = () => {
         saveTreatmentPlan={saveTreatmentPlan}
         navigate={navigate}
         setEditingTreatmentPlan={setEditingTreatmentPlan}
+        setSelectedToothForServices={setSelectedToothForServices}
+        setToothServicesModal={setToothServicesModal}
+        setToothServiceStatuses={setToothServiceStatuses}
       />
     );
   }
@@ -1670,7 +1682,7 @@ const TreatmentPlanPage: React.FC = () => {
             
             <TeethMap
               ref={teethMapRef}
-              services={services}
+              services={services as any}
               selectedTeeth={editingTreatmentPlan.selected_teeth || []}
               toothServices={editingTreatmentPlan.toothServicesData || []}
               treatedTeeth={editingTreatmentPlan.treated_teeth || []}
@@ -1870,7 +1882,7 @@ const TreatmentPlanPage: React.FC = () => {
                         color: '#6b7280',
                         margin: '0.25rem 0 0 0'
                       }}>
-                        {service.category} • {service.price} ₸
+                        {service.category || 'Общая'} • {service.price} ₸
                       </p>
                     </div>
                     <div style={{
