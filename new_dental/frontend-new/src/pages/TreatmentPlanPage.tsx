@@ -353,7 +353,7 @@ const MobileTreatmentPlanPage: React.FC<{
         
         <TeethMap
           ref={teethMapRef}
-          services={services}
+          services={services as any}
           selectedTeeth={editingTreatmentPlan.selected_teeth || []}
           toothServices={editingTreatmentPlan.toothServicesData || []}
           treatedTeeth={editingTreatmentPlan.treated_teeth || []}
