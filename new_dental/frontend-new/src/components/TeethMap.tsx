@@ -28,6 +28,7 @@ interface TeethMapProps {
   treatmentTeeth?: number[]; // Зубы, на которых назначено лечение (красные)
   // Новые пропсы для управления услугами
   onUpdateServiceStatus?: (toothId: number, serviceId: number, status: string) => void;
+  onToothClick?: (toothId: number, toothServices: Service[], serviceStatuses: Record<number, string>) => void;
 }
 
 const TeethMap = forwardRef<any, TeethMapProps>((props, ref) => {
@@ -41,7 +42,8 @@ const TeethMap = forwardRef<any, TeethMapProps>((props, ref) => {
     treatedTeeth = [],
     treatmentTeeth = [],
     toothServices: externalToothServices = [],
-    onUpdateServiceStatus
+    onUpdateServiceStatus,
+    onToothClick
   } = props;
   
   // Используем onUpdateServiceStatus для избежания предупреждения линтера
@@ -177,6 +179,11 @@ const TeethMap = forwardRef<any, TeethMapProps>((props, ref) => {
 
     // Проверяем, есть ли услуги на этом зубе
     const toothServiceData = toothServices.find(ts => ts.toothId === toothId);
+    
+    // Вызываем onToothClick если он передан
+    if (onToothClick && toothServiceData) {
+      onToothClick(toothId, toothServiceData.services, toothServiceData.serviceStatuses || {});
+    }
     
     if (toothServiceData && toothServiceData.services.length > 0) {
       // Если на зубе есть услуги, добавляем его к выбранным зубам для добавления новых услуг

@@ -729,7 +729,6 @@ const TreatmentPlanPage: React.FC = () => {
   
   const [editingTreatmentPlan, setEditingTreatmentPlan] = useState<TreatmentPlan | null>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [patients] = useState<Patient[]>([]);
   const [teethServices, setTeethServices] = useState<Record<number, number[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -926,9 +925,8 @@ const TreatmentPlanPage: React.FC = () => {
       const servicesRes = await api.get('/services/');
       setServices(servicesRes.data || []);
       
-      // Загружаем пациентов
+      // Загружаем пациентов (не сохраняем в состояние, так как не используется)
       const patientsRes = await api.get('/patients/');
-      setPatients(patientsRes.data?.patients || patientsRes.data || []);
       
       // Загружаем план лечения
       if (planId) {
