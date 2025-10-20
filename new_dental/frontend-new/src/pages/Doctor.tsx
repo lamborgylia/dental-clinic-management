@@ -45,6 +45,7 @@ interface TreatmentPlan {
   services: number[]; // ID выбранных услуг
   total_cost: number; // Общая стоимость плана
   selected_teeth: number[]; // ID выбранных зубов
+  treated_teeth?: number[]; // ID зубов, которые уже вылечены
   teethServices?: Record<number, number[]>; // Услуги для каждого зуба: {зуб: [услуги]}
   teeth_services?: Record<number, number[]>; // Альтернативное поле от API
   // Новое поле для хранения данных о зубах и услугах в новом формате
@@ -105,6 +106,7 @@ const Doctor: React.FC = () => {
   
   // Состояние для управления услугами на зубах
   const [teethServices, setTeethServices] = useState<Record<number, number[]>>({});
+  const teethMapRef = useRef<any>(null);
   
   useEffect(() => {
     fetchData();
@@ -133,9 +135,11 @@ const Doctor: React.FC = () => {
   // Функция для безопасного получения выбранных зубов из плана
   const getPlanSelectedTeeth = (plan: TreatmentPlan) => {
     console.log('🦷 getPlanSelectedTeeth для плана', plan.id, ':', plan.selected_teeth);
+    console.log('🦷 Полный план:', plan);
     
     // Если есть selected_teeth, используем их
     if (plan.selected_teeth && plan.selected_teeth.length > 0) {
+      console.log('🦷 Возвращаем selected_teeth:', plan.selected_teeth);
       return plan.selected_teeth;
     }
     
@@ -779,82 +783,20 @@ const Doctor: React.FC = () => {
     // Очищаем данные о зубах и услугах для нового плана
     setTeethServices({});
     
+    // Сбрасываем выбор зубов при создании нового плана
+    setTimeout(() => {
+      if (teethMapRef.current && teethMapRef.current.resetSelection) {
+        teethMapRef.current.resetSelection();
+      }
+    }, 100);
+    
     setShowTreatmentPlanModal(true);
   };
 
   const handleEditTreatmentPlan = (plan: TreatmentPlan) => {
-    console.log('📝 Редактирование плана лечения:', plan);
-    console.log('🔍 Данные анамнеза в редактируемом плане:');
-    console.log('  - patient_allergies:', plan.patient_allergies);
-    console.log('  - patient_chronic_diseases:', plan.patient_chronic_diseases);
-    console.log('  - patient_contraindications:', plan.patient_contraindications);
-    console.log('  - patient_special_notes:', plan.patient_special_notes);
-    
-    // Убеждаемся, что у плана есть все необходимые поля пациента
-    const planWithDefaults = {
-      ...plan,
-      // Заполняем поля пациента, если они отсутствуют
-      patient_name: plan.patient_name || 'Неизвестный пациент',
-      patient_phone: plan.patient_phone || '',
-      patient_iin: plan.patient_iin || '',
-      patient_birth_date: plan.patient_birth_date || '',
-      patient_allergies: plan.patient_allergies || '',
-      patient_chronic_diseases: plan.patient_chronic_diseases || '',
-      patient_contraindications: plan.patient_contraindications || '',
-      patient_special_notes: plan.patient_special_notes || '',
-      services: getPlanServices(plan),
-      total_cost: getPlanTotalCost(plan),
-      selected_teeth: getPlanSelectedTeeth(plan)
-    };
-    
-    console.log('✅ План с дополненными полями пациента:', planWithDefaults);
-    setEditingTreatmentPlan(planWithDefaults);
-    setIsCreatingTreatmentPlan(false);
-    
-    // Инициализируем данные о зубах и услугах для редактируемого плана
-    const planTeethServices: Record<number, number[]> = plan.teeth_services || plan.teethServices || {};
-    const selectedTeeth = getPlanSelectedTeeth(plan);
-    
-    // Устанавливаем teethServices из плана
-    setTeethServices(planTeethServices);
-    
-    // Инициализируем toothServicesData для новой карты зубов
-    if (plan.toothServicesData) {
-      // Если у плана уже есть данные в новом формате, используем их
-      console.log('🦷 Используем существующие данные о зубах в новом формате:', plan.toothServicesData);
-    } else {
-      // Конвертируем старый формат в новый
-      const newToothServicesData = Object.entries(planTeethServices).map(([toothId, serviceIds]) => ({
-        toothId: parseInt(toothId),
-        services: serviceIds.map(serviceId => {
-          const service = services.find(s => s.id === serviceId);
-          return service ? {
-            id: service.id,
-            name: service.name,
-            price: service.price,
-            category: service.category
-          } : {
-            id: serviceId,
-            name: 'Неизвестная услуга',
-            price: 0,
-            category: 'unknown'
-          };
-        })
-      }));
-      
-      // Обновляем план с новыми данными
-      const updatedPlan = {
-        ...planWithDefaults,
-        toothServicesData: newToothServicesData
-      };
-      setEditingTreatmentPlan(updatedPlan);
-      
-      console.log('🦷 Конвертированы данные о зубах в новый формат:', newToothServicesData);
-    }
-    
-    console.log('🦷 Инициализированы услуги для зубов:', planTeethServices);
-    console.log('🦷 Выбранные зубы:', selectedTeeth);
-    setShowTreatmentPlanModal(true);
+    console.log('📝 Переход к редактированию плана лечения:', plan);
+    // Переходим на страницу редактирования плана лечения
+    navigate(`/treatment-plan/${plan.id}`);
   };
 
   const saveTreatmentPlan = async () => {
@@ -941,6 +883,8 @@ const Doctor: React.FC = () => {
         console.log('  - patient_chronic_diseases:', updatedPlan.patient_chronic_diseases);
         console.log('  - patient_contraindications:', updatedPlan.patient_contraindications);
         console.log('  - patient_special_notes:', updatedPlan.patient_special_notes);
+        console.log('🦷 СОХРАНЯЕМЫЕ ВЫБРАННЫЕ ЗУБЫ:', updatedPlan.selected_teeth);
+        console.log('🦷 ТЕКУЩИЙ editingTreatmentPlan.selected_teeth:', editingTreatmentPlan.selected_teeth);
         
         setTreatmentPlans(treatmentPlans.map(p => 
           p.id === editingTreatmentPlan.id ? updatedPlan : p
@@ -999,6 +943,11 @@ const Doctor: React.FC = () => {
       setEditingTreatmentPlan(null);
       setIsCreatingTreatmentPlan(false);
       
+      // Сбрасываем выбор зубов
+      if (teethMapRef.current && teethMapRef.current.resetSelection) {
+        teethMapRef.current.resetSelection();
+      }
+      
       // Показываем уведомление об успешном сохранении
       alert('✅ План лечения успешно сохранен!');
       
@@ -1008,6 +957,32 @@ const Doctor: React.FC = () => {
     }
   };
 
+  // Функция для отметки зубов как вылеченных
+  const markTeethAsTreated = (toothIds: number[]) => {
+    if (!editingTreatmentPlan) return;
+    
+    const currentTreatedTeeth = editingTreatmentPlan.treated_teeth || [];
+    
+    // Фильтруем зубы, которые еще не отмечены как вылеченные
+    const newTeethToMark = toothIds.filter(toothId => !currentTreatedTeeth.includes(toothId));
+    
+    if (newTeethToMark.length === 0) {
+      alert('Все выбранные зубы уже отмечены как вылеченные');
+      return;
+    }
+    
+    // Добавляем зубы к списку вылеченных
+    const newTreatedTeeth = [...currentTreatedTeeth, ...newTeethToMark];
+    
+    // Обновляем план лечения
+    setEditingTreatmentPlan(prev => prev ? {
+      ...prev,
+      treated_teeth: newTreatedTeeth
+    } : null);
+    
+    console.log('✅ Зубы', newTeethToMark.join(', '), 'отмечены как вылеченные');
+    alert(`✅ Зубы ${newTeethToMark.join(', ')} отмечены как вылеченные`);
+  };
 
   // Функции для навигации к плану лечения из записи на прием
   const handleNavigateToTreatmentPlan = (patient: Patient) => {
@@ -1070,6 +1045,13 @@ const Doctor: React.FC = () => {
       special_notes: (patient as any).special_notes || ''
     } as any);
     setShowTreatmentPlanModal(true);
+    
+    // Сбрасываем выбор зубов при создании плана из записи
+    setTimeout(() => {
+      if (teethMapRef.current && teethMapRef.current.resetSelection) {
+        teethMapRef.current.resetSelection();
+      }
+    }, 100);
   };
 
   const handleCreateTreatmentPlanFromPatient = (patient: Patient) => {
@@ -1114,6 +1096,13 @@ const Doctor: React.FC = () => {
     setIsCreatingTreatmentPlan(true);
     setShowTreatmentPlanModal(true);
     setTeethServices({});
+    
+    // Сбрасываем выбор зубов при создании плана из пациента
+    setTimeout(() => {
+      if (teethMapRef.current && teethMapRef.current.resetSelection) {
+        teethMapRef.current.resetSelection();
+      }
+    }, 100);
   };
 
   // Функции для автозаполнения данных пациента в плане лечения
@@ -2749,10 +2738,27 @@ const Doctor: React.FC = () => {
 
             {/* Карта зубов и выбор услуг */}
             <div style={{ marginBottom: '1rem' }}>
+              {(() => {
+                const treatmentTeeth = Object.keys(editingTreatmentPlan?.teethServices || {}).map(Number);
+                const treatedTeeth = editingTreatmentPlan?.treated_teeth || [];
+                const selectedTeeth = editingTreatmentPlan?.selected_teeth || [];
+                
+                console.log('🦷 ПЕРЕДАЕМ В TeethMap:');
+                console.log('  - treatmentTeeth (зубы с услугами):', treatmentTeeth);
+                console.log('  - treatedTeeth (вылеченные зубы):', treatedTeeth);
+                console.log('  - selectedTeeth (выбранные зубы):', selectedTeeth);
+                console.log('  - teethServices:', editingTreatmentPlan?.teethServices);
+                
+                return null; // Просто для отладки
+              })()}
               <TeethMap
+                ref={teethMapRef}
                 services={services}
                 selectedTeeth={editingTreatmentPlan?.selected_teeth || []}
                 teethServices={editingTreatmentPlan?.teethServices || {}}
+                // Новые пропсы для статуса зубов
+                treatedTeeth={editingTreatmentPlan?.treated_teeth || []} // Зубы, которые уже вылечены
+                treatmentTeeth={Object.keys(editingTreatmentPlan?.teethServices || {}).map(Number)} // Зубы, на которых назначено лечение
                 onToothServicesChange={(newToothServices) => {
                   console.log('🦷 Новые данные о зубах и услугах:', newToothServices);
                   
@@ -2775,10 +2781,31 @@ const Doctor: React.FC = () => {
                   } : null);
                   
                   console.log('✅ План лечения обновлен с новыми данными о зубах');
+                  console.log('🦷 Зубы с назначенными услугами:', Object.keys(newTeethServices).map(Number));
                 }}
                 onToothSelect={(toothId) => {
                   console.log('🦷 Выбран зуб:', toothId);
-                  // Логика выбора зуба уже обрабатывается в TeethMap
+                  
+                  // Обновляем selected_teeth в плане лечения
+                  if (editingTreatmentPlan) {
+                    const currentSelectedTeeth = editingTreatmentPlan.selected_teeth || [];
+                    let newSelectedTeeth: number[];
+                    
+                    if (currentSelectedTeeth.includes(toothId)) {
+                      // Убираем зуб из выбора
+                      newSelectedTeeth = currentSelectedTeeth.filter(id => id !== toothId);
+                    } else {
+                      // Добавляем зуб к выбору
+                      newSelectedTeeth = [...currentSelectedTeeth, toothId];
+                    }
+                    
+                    console.log('🦷 Обновляем selected_teeth в плане:', newSelectedTeeth);
+                    
+                    setEditingTreatmentPlan({
+                      ...editingTreatmentPlan,
+                      selected_teeth: newSelectedTeeth
+                    });
+                  }
                 }}
                 onAddServiceToTooth={(toothId, serviceId) => {
                   console.log('🦷 Добавлена услуга к зубу:', toothId, serviceId);
@@ -2798,12 +2825,9 @@ const Doctor: React.FC = () => {
                 }}
                 onClearSelection={() => {
                   console.log('🦷 Очищен выбор зубов');
-                  setTeethServices({});
-                  setEditingTreatmentPlan(prev => prev ? {
-                    ...prev,
-                    selected_teeth: [],
-                    teethServices: {}
-                  } : null);
+                  console.log('🦷 НЕ сбрасываем зубы с назначенными услугами!');
+                  // НЕ сбрасываем teethServices и selected_teeth в плане лечения
+                  // Это должно происходить только при клике на зубы
                 }}
               />
             </div>
@@ -2984,11 +3008,102 @@ const Doctor: React.FC = () => {
                 </button>
               )}
               
+              {/* Кнопка для отметки зубов как вылеченных */}
+              {(() => {
+                // Получаем зубы с назначенными услугами, но не вылеченные
+                const teethWithServices = Object.keys(editingTreatmentPlan?.teethServices || {}).map(Number);
+                const treatedTeeth = editingTreatmentPlan?.treated_teeth || [];
+                const teethToMark = teethWithServices.filter(toothId => !treatedTeeth.includes(toothId));
+                
+                return teethToMark.length > 0 && (
+                  <button
+                    onClick={() => markTeethAsTreated(teethToMark)}
+                    style={{
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.75rem 1.25rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: 'clamp(0.875rem, 3vw, 1rem)',
+                      fontWeight: '500',
+                      boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#059669';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#10b981';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    ✅ Отметить зубы {teethToMark.join(', ')} как вылеченные
+                  </button>
+                );
+              })()}
+              
+              {/* Кнопка для создания записи на прием для невылеченных зубов */}
+              {(() => {
+                // Получаем зубы с назначенными услугами, но не вылеченные
+                const teethWithServices = Object.keys(editingTreatmentPlan?.teethServices || {}).map(Number);
+                const treatedTeeth = editingTreatmentPlan?.treated_teeth || [];
+                const untreatedTeeth = teethWithServices.filter(toothId => !treatedTeeth.includes(toothId));
+                
+                return untreatedTeeth.length > 0 && (
+                  <button
+                    onClick={() => {
+                      console.log('📅 Создание записи на прием для невылеченных зубов:', untreatedTeeth);
+                      console.log('🦷 Услуги для зубов:', editingTreatmentPlan?.teethServices);
+                      
+                      // Закрываем модальное окно плана лечения
+                      setShowTreatmentPlanModal(false);
+                      setEditingTreatmentPlan(null);
+                      setIsCreatingTreatmentPlan(false);
+                      
+                      // Переключаемся на календарь для создания записи
+                      setActiveTab('calendar');
+                      
+                      // Показываем уведомление
+                      alert(`📅 Переходим к календарю для создания записи на прием для зубов: ${untreatedTeeth.join(', ')}`);
+                    }}
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.75rem 1.25rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: 'clamp(0.875rem, 3vw, 1rem)',
+                      fontWeight: '500',
+                      boxShadow: '0 2px 4px rgba(37, 99, 235, 0.3)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1d4ed8';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#2563eb';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    📅 Создать запись на прием для зубов {untreatedTeeth.join(', ')}
+                  </button>
+                );
+              })()}
+              
               <button
                 onClick={() => {
                   setShowTreatmentPlanModal(false);
                   setEditingTreatmentPlan(null);
                   setIsCreatingTreatmentPlan(false);
+                  
+                  // Сбрасываем выбор зубов
+                  if (teethMapRef.current && teethMapRef.current.resetSelection) {
+                    teethMapRef.current.resetSelection();
+                  }
                 }}
                 style={{
                   backgroundColor: '#6b7280',

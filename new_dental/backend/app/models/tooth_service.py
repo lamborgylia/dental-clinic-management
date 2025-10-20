@@ -10,6 +10,7 @@ class ToothService(Base):
     treatment_plan_id = Column(Integer, ForeignKey("treatment_plans.id"), nullable=False)
     tooth_id = Column(Integer, nullable=False)  # ID зуба (например, 11, 12, 21, 22, etc.)
     service_ids = Column(JSON, nullable=False)  # Массив ID услуг для этого зуба
+    service_statuses = Column(JSON, nullable=True)  # Статусы услуг: {service_id: "completed"/"pending"}
 
     # Relationships
     treatment_plan = relationship("TreatmentPlan", back_populates="tooth_services")

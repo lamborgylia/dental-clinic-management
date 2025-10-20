@@ -27,6 +27,25 @@ const EnhancedTable: React.FC<EnhancedTableProps> = ({
   actions,
   className = ''
 }) => {
+  // Проверяем, что data является массивом
+  if (!Array.isArray(data)) {
+    console.error('EnhancedTable: data должен быть массивом, получен:', typeof data, data);
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '2rem',
+        textAlign: 'center',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div style={{ color: '#ef4444' }}>Ошибка: данные не являются массивом</div>
+        <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+          Тип данных: {typeof data}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{

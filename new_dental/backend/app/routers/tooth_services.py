@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from ..core.database import get_db
 from ..models.tooth_service import ToothService
-from ..schemas.tooth_service import ToothServiceCreate, ToothServiceResponse
+from ..schemas.tooth_service import ToothServiceCreate, ToothServiceResponse, ToothServiceUpdate
 
 router = APIRouter(prefix="/tooth-services", tags=["tooth-services"])
 
@@ -14,10 +14,16 @@ def create_tooth_service(
     db: Session = Depends(get_db)
 ):
     """Создать новую запись о зубе и услугах"""
+    # Инициализируем статусы услуг как "pending" по умолчанию
+    service_statuses = {}
+    for service_id in tooth_service.service_ids:
+        service_statuses[service_id] = "pending"
+    
     db_tooth_service = ToothService(
         treatment_plan_id=tooth_service.treatment_plan_id,
         tooth_id=tooth_service.tooth_id,
-        service_ids=tooth_service.service_ids
+        service_ids=tooth_service.service_ids,
+        service_statuses=service_statuses
     )
     db.add(db_tooth_service)
     db.commit()
@@ -40,7 +46,7 @@ def get_tooth_services_by_treatment_plan(
 @router.put("/{tooth_service_id}", response_model=ToothServiceResponse)
 def update_tooth_service(
     tooth_service_id: int,
-    tooth_service: ToothServiceCreate,
+    tooth_service: ToothServiceUpdate,
     db: Session = Depends(get_db)
 ):
     """Обновить запись о зубе и услугах"""
@@ -51,12 +57,53 @@ def update_tooth_service(
     if not db_tooth_service:
         raise HTTPException(status_code=404, detail="Запись о зубе и услугах не найдена")
     
-    db_tooth_service.tooth_id = tooth_service.tooth_id
-    db_tooth_service.service_ids = tooth_service.service_ids
+    if tooth_service.service_ids is not None:
+        db_tooth_service.service_ids = tooth_service.service_ids
+        # Обновляем статусы для новых услуг
+        if tooth_service.service_statuses is None:
+            service_statuses = {}
+            for service_id in tooth_service.service_ids:
+                # Сохраняем существующий статус или устанавливаем "pending"
+                service_statuses[service_id] = db_tooth_service.service_statuses.get(service_id, "pending")
+            db_tooth_service.service_statuses = service_statuses
+    
+    if tooth_service.service_statuses is not None:
+        db_tooth_service.service_statuses = tooth_service.service_statuses
     
     db.commit()
     db.refresh(db_tooth_service)
     return db_tooth_service
+
+
+@router.patch("/{tooth_service_id}/service/{service_id}/status")
+def update_service_status(
+    tooth_service_id: int,
+    service_id: int,
+    status: str,
+    db: Session = Depends(get_db)
+):
+    """Обновить статус конкретной услуги на зубе"""
+    if status not in ["pending", "completed"]:
+        raise HTTPException(status_code=400, detail="Статус должен быть 'pending' или 'completed'")
+    
+    db_tooth_service = db.query(ToothService).filter(
+        ToothService.id == tooth_service_id
+    ).first()
+    
+    if not db_tooth_service:
+        raise HTTPException(status_code=404, detail="Запись о зубе и услугах не найдена")
+    
+    if service_id not in db_tooth_service.service_ids:
+        raise HTTPException(status_code=400, detail="Услуга не назначена на этот зуб")
+    
+    # Обновляем статус услуги
+    if db_tooth_service.service_statuses is None:
+        db_tooth_service.service_statuses = {}
+    
+    db_tooth_service.service_statuses[service_id] = status
+    
+    db.commit()
+    return {"message": f"Статус услуги {service_id} обновлен на {status}"}
 
 
 @router.delete("/{tooth_service_id}")

@@ -41,6 +41,15 @@ class TreatmentPlanUpdate(BaseModel):
     diagnosis: Optional[str] = None
     notes: Optional[str] = None
     services: Optional[List[TreatmentPlanServiceCreate]] = None
+    # Данные пациента
+    patient_allergies: Optional[str] = None
+    patient_chronic_diseases: Optional[str] = None
+    patient_contraindications: Optional[str] = None
+    patient_special_notes: Optional[str] = None
+    # Дополнительные поля для совместимости с frontend
+    treatment_description: Optional[str] = None
+    treated_teeth: Optional[List[int]] = None
+    status: Optional[str] = None
 
 
 class TreatmentPlanResponse(TreatmentPlanBase):
@@ -62,6 +71,7 @@ class TreatmentPlanResponse(TreatmentPlanBase):
     treatment_description: Optional[str] = None
     total_cost: Optional[float] = None
     selected_teeth: Optional[List[int]] = None
+    treated_teeth: Optional[List[int]] = None
     status: Optional[str] = "active"
 
     class Config:

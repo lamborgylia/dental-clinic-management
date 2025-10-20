@@ -93,7 +93,8 @@ const Admin: React.FC = () => {
       
       setUsers(usersRes.data || []);
       setClinics(clinicsRes.data || []);
-      setPatients(patientsRes.data || []);
+      // API возвращает объект с пагинацией, нужно извлечь массив patients
+      setPatients(patientsRes.data?.patients || patientsRes.data || []);
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
     } finally {

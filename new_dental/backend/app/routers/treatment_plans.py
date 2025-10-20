@@ -307,10 +307,77 @@ async def get_treatment_plan(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_medical_staff)
 ):
+    from ..models.patient import Patient
+    from ..models.treatment_plan import TreatmentPlanService
+    
     treatment_plan = db.query(TreatmentPlan).filter(TreatmentPlan.id == treatment_plan_id).first()
     if treatment_plan is None:
         raise HTTPException(status_code=404, detail="Treatment plan not found")
-    return treatment_plan
+    
+    # Получаем данные пациента
+    patient = db.query(Patient).filter(Patient.id == treatment_plan.patient_id).first()
+    
+    # Получаем услуги плана
+    services = db.query(TreatmentPlanService).filter(
+        TreatmentPlanService.treatment_plan_id == treatment_plan_id
+    ).all()
+    
+    services_list = []
+    for service in services:
+        services_list.append({
+            "id": service.id,
+            "service_id": service.service_id,
+            "tooth_id": service.tooth_id,
+            "service_name": service.service_name,
+            "service_price": float(service.service_price),
+            "quantity": service.quantity,
+            "notes": service.notes
+        })
+    
+    # Получаем данные о зубах и услугах
+    from ..models.tooth_service import ToothService
+    tooth_services = db.query(ToothService).filter(
+        ToothService.treatment_plan_id == treatment_plan_id
+    ).all()
+    
+    teeth_services_dict = {}
+    selected_teeth = set()
+    for tooth_service in tooth_services:
+        teeth_services_dict[tooth_service.tooth_id] = tooth_service.service_ids
+        selected_teeth.add(tooth_service.tooth_id)
+    
+    # Вычисляем общую стоимость
+    total_cost = 0
+    for service in services:
+        total_cost += service.service_price * service.quantity
+    
+    # Преобразуем в формат с данными пациента
+    plan_dict = {
+        "id": treatment_plan.id,
+        "patient_id": treatment_plan.patient_id,
+        "doctor_id": treatment_plan.doctor_id,
+        "diagnosis": treatment_plan.diagnosis,
+        "notes": treatment_plan.notes,
+        "created_at": treatment_plan.created_at,
+        "updated_at": treatment_plan.updated_at,
+        "services": services_list,
+        "teeth_services": teeth_services_dict,
+        "patient_name": patient.full_name if patient else None,
+        "patient_phone": patient.phone if patient else None,
+        "patient_iin": patient.iin if patient else None,
+        "patient_birth_date": patient.birth_date.isoformat() if patient and patient.birth_date else None,
+        "patient_allergies": patient.allergies if patient else None,
+        "patient_chronic_diseases": patient.chronic_diseases if patient else None,
+        "patient_contraindications": patient.contraindications if patient else None,
+        "patient_special_notes": patient.special_notes if patient else None,
+        "treatment_description": treatment_plan.notes,
+        "total_cost": total_cost,
+        "selected_teeth": list(selected_teeth),
+        "treated_teeth": getattr(treatment_plan, 'treated_teeth', None) or [],
+        "status": "active"
+    }
+    
+    return plan_dict
 
 
 @router.put("/{treatment_plan_id}", response_model=TreatmentPlanResponse)
@@ -325,8 +392,33 @@ async def update_treatment_plan(
         raise HTTPException(status_code=404, detail="Treatment plan not found")
     
     # Обновляем основные поля плана
-    for field, value in treatment_plan.dict(exclude_unset=True, exclude={'services'}).items():
+    for field, value in treatment_plan.dict(exclude_unset=True, exclude={'services', 'patient_allergies', 'patient_chronic_diseases', 'patient_contraindications', 'patient_special_notes', 'treated_teeth'}).items():
         setattr(db_treatment_plan, field, value)
+    
+    # Явно обновляем поле updated_at
+    from sqlalchemy.sql import func
+    db_treatment_plan.updated_at = func.now()
+    
+    # Обновляем поле treated_teeth, если оно передано
+    if treatment_plan.treated_teeth is not None:
+        db_treatment_plan.treated_teeth = treatment_plan.treated_teeth
+    
+    # Обновляем данные пациента, если они переданы
+    if any([treatment_plan.patient_allergies, treatment_plan.patient_chronic_diseases, 
+            treatment_plan.patient_contraindications, treatment_plan.patient_special_notes]):
+        
+        from ..models.patient import Patient
+        patient = db.query(Patient).filter(Patient.id == db_treatment_plan.patient_id).first()
+        
+        if patient:
+            if treatment_plan.patient_allergies is not None:
+                patient.allergies = treatment_plan.patient_allergies
+            if treatment_plan.patient_chronic_diseases is not None:
+                patient.chronic_diseases = treatment_plan.patient_chronic_diseases
+            if treatment_plan.patient_contraindications is not None:
+                patient.contraindications = treatment_plan.patient_contraindications
+            if treatment_plan.patient_special_notes is not None:
+                patient.special_notes = treatment_plan.patient_special_notes
     
     # Если переданы услуги, обновляем их
     if treatment_plan.services is not None:
@@ -354,7 +446,9 @@ async def update_treatment_plan(
     
     db.commit()
     db.refresh(db_treatment_plan)
-    return db_treatment_plan
+    
+    # Возвращаем обновленный план с данными пациента
+    return await get_treatment_plan(treatment_plan_id, db, current_user)
 
 
 @router.delete("/{treatment_plan_id}")

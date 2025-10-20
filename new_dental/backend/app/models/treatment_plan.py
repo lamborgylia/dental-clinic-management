@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime, String, Numeric
+from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime, String, Numeric, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..core.database import Base
@@ -13,6 +13,7 @@ class TreatmentPlan(Base):
     clinic_id = Column(Integer, ForeignKey("clinics.id"), nullable=False)
     diagnosis = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
+    treated_teeth = Column(JSON, nullable=True)  # Массив ID вылеченных зубов
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

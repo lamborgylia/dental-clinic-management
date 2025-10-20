@@ -93,3 +93,109 @@ async def debug_auth():
             "message": "Ошибка отладки авторизации",
             "error": str(e)
         }
+
+
+@app.post("/migrate/add-treated-teeth")
+async def add_treated_teeth_column():
+    """Добавляет поле treated_teeth в таблицу treatment_plans"""
+    try:
+        from sqlalchemy import text
+        from .core.database import get_db
+        from sqlalchemy.orm import Session
+        
+        # Получаем сессию БД
+        db = next(get_db())
+        
+        # Проверяем, существует ли уже поле treated_teeth
+        check_sql = text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'treatment_plans' 
+            AND column_name = 'treated_teeth';
+        """)
+        
+        result = db.execute(check_sql).fetchone()
+        
+        if result:
+            return {
+                "message": "Поле treated_teeth уже существует в таблице treatment_plans",
+                "status": "already_exists"
+            }
+        else:
+            # Добавляем поле treated_teeth
+            alter_sql = text("""
+                ALTER TABLE treatment_plans 
+                ADD COLUMN treated_teeth JSON;
+            """)
+            
+            db.execute(alter_sql)
+            db.commit()
+            
+            return {
+                "message": "Поле treated_teeth добавлено в таблицу treatment_plans",
+                "status": "success"
+            }
+            
+    except Exception as e:
+        return {
+            "message": f"Ошибка при добавлении поля treated_teeth: {str(e)}",
+            "status": "error"
+        }
+
+
+@app.post("/migrate/add-service-statuses")
+async def add_service_statuses_column():
+    """Добавляет поле service_statuses в таблицу tooth_services"""
+    try:
+        from sqlalchemy import text
+        from .core.database import get_db
+        from sqlalchemy.orm import Session
+        
+        # Получаем сессию БД
+        db = next(get_db())
+        
+        # Проверяем, существует ли уже поле service_statuses
+        check_sql = text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'tooth_services' 
+            AND column_name = 'service_statuses';
+        """)
+        
+        result = db.execute(check_sql).fetchone()
+        
+        if result:
+            return {
+                "message": "Поле service_statuses уже существует в таблице tooth_services",
+                "status": "already_exists"
+            }
+        else:
+            # Добавляем поле service_statuses
+            alter_sql = text("""
+                ALTER TABLE tooth_services 
+                ADD COLUMN service_statuses JSON;
+            """)
+            
+            db.execute(alter_sql)
+            db.commit()
+            
+            # Инициализируем статусы для существующих записей
+            init_sql = text("""
+                UPDATE tooth_services 
+                SET service_statuses = '{}' 
+                WHERE service_statuses IS NULL;
+            """)
+            
+            db.execute(init_sql)
+            db.commit()
+            
+            return {
+                "message": "Поле service_statuses добавлено в таблицу tooth_services и инициализировано",
+                "status": "success"
+            }
+            
+    except Exception as e:
+        return {
+            "message": f"Ошибка при добавлении поля service_statuses: {str(e)}",
+            "status": "error"
+        }

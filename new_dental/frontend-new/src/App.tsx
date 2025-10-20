@@ -11,6 +11,7 @@ import PatientDashboard from './pages/PatientDashboard';
 import TreatmentOrders from './pages/TreatmentOrders';
 import TreatmentOrderDetail from './pages/TreatmentOrderDetail';
 import CreateTreatmentOrder from './pages/CreateTreatmentOrder';
+import TreatmentPlanPage from './pages/TreatmentPlanPage';
 import ClinicEdit from './pages/ClinicEdit';
 import DebugPage from './pages/DebugPage';
 import MobileAuth from './components/MobileAuth';
@@ -112,6 +113,13 @@ const AppContent: React.FC = () => {
         <ProtectedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
           <Layout clinicName={clinicName}>
             <CreateTreatmentOrder />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/treatment-plan/:planId" element={
+        <ProtectedRoute allowedRoles={['doctor', 'nurse', 'admin']}>
+          <Layout clinicName={clinicName}>
+            <TreatmentPlanPage />
           </Layout>
         </ProtectedRoute>
       } />
