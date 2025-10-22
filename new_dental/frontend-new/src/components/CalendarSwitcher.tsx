@@ -6,9 +6,17 @@ interface CalendarSwitcherProps {
   doctorId: number;
   onNavigateToTreatmentPlan?: (patient: any) => void;
   onCreateTreatmentPlan?: (patient: any) => void;
+  onAppointmentCreated?: (appointment: any) => void;
+  onAppointmentUpdated?: (appointment: any) => void;
 }
 
-const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({ doctorId, onNavigateToTreatmentPlan, onCreateTreatmentPlan }) => {
+const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({ 
+  doctorId, 
+  onNavigateToTreatmentPlan, 
+  onCreateTreatmentPlan,
+  onAppointmentCreated,
+  onAppointmentUpdated
+}) => {
   const [calendarType, setCalendarType] = useState<'weekly' | 'monthly'>('weekly');
 
   return (
@@ -86,9 +94,17 @@ const CalendarSwitcher: React.FC<CalendarSwitcherProps> = ({ doctorId, onNavigat
 
       {/* Отображение выбранного календаря */}
       {calendarType === 'weekly' ? (
-        <AppointmentCalendar doctorId={doctorId} onCreateTreatmentPlan={onCreateTreatmentPlan} />
+        <AppointmentCalendar 
+          doctorId={doctorId} 
+          onCreateTreatmentPlan={onCreateTreatmentPlan}
+          onAppointmentCreated={onAppointmentCreated}
+          onAppointmentUpdated={onAppointmentUpdated}
+        />
       ) : (
-        <AlternativeCalendar doctorId={doctorId} onNavigateToTreatmentPlan={onNavigateToTreatmentPlan} />
+        <AlternativeCalendar 
+          doctorId={doctorId} 
+          onNavigateToTreatmentPlan={onNavigateToTreatmentPlan} 
+        />
       )}
     </div>
   );

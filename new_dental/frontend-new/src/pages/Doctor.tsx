@@ -108,6 +108,17 @@ const Doctor: React.FC = () => {
   const [teethServices, setTeethServices] = useState<Record<number, number[]>>({});
   const teethMapRef = useRef<any>(null);
   
+  // Функции для обработки записей на прием
+  const handleAppointmentCreated = (appointment: any) => {
+    console.log('✅ Запись на прием создана:', appointment);
+    // Можно добавить уведомление или обновление состояния
+  };
+  
+  const handleAppointmentUpdated = (appointment: any) => {
+    console.log('✅ Запись на прием обновлена:', appointment);
+    // Можно добавить уведомление или обновление состояния
+  };
+  
   useEffect(() => {
     fetchData();
   }, []);
@@ -3165,6 +3176,8 @@ const Doctor: React.FC = () => {
             doctorId={1}
             onNavigateToTreatmentPlan={handleNavigateToTreatmentPlan}
             onCreateTreatmentPlan={handleCreateTreatmentPlanFromModal}
+            onAppointmentCreated={handleAppointmentCreated}
+            onAppointmentUpdated={handleAppointmentUpdated}
           />
         )}
     </div>
