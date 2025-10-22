@@ -580,14 +580,15 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
       
       if (appointment) {
         // Обновление существующей записи
-        onAppointmentUpdated({ ...appointment, ...appointmentData });
+        console.log('💾 Обновляем запись в БД:', appointmentData);
+        const { data: updatedAppointment } = await api.put(`/appointments/${appointment.id}`, appointmentData);
+        console.log('✅ Запись обновлена в БД:', updatedAppointment);
+        onAppointmentUpdated(updatedAppointment);
       } else {
         // Создание новой записи
-        const newAppointment: Appointment = {
-          id: Date.now(), // Временный ID
-          status: 'scheduled',
-          ...appointmentData
-        };
+        console.log('💾 Создаем новую запись в БД:', appointmentData);
+        const { data: newAppointment } = await api.post('/appointments/', appointmentData);
+        console.log('✅ Запись создана в БД:', newAppointment);
         onAppointmentCreated(newAppointment);
       }
       

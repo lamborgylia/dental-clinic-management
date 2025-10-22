@@ -695,9 +695,33 @@ const Doctor: React.FC = () => {
         // Создаем нового пациента в БД
         console.log('💾 Сохраняем нового пациента в БД:', editingPatient);
         
+        // Очищаем телефон от форматирования (убираем все кроме цифр и +)
+        const cleanPhone = editingPatient.phone.replace(/[\s()-]/g, '');
+        
+        // Проверяем обязательные поля
+        if (!editingPatient.full_name || editingPatient.full_name.trim() === '') {
+          alert('Пожалуйста, укажите имя пациента');
+          return;
+        }
+        if (!editingPatient.iin || editingPatient.iin.length !== 12) {
+          alert('ИИН должен содержать ровно 12 цифр');
+          return;
+        }
+        if (!editingPatient.birth_date) {
+          alert('Пожалуйста, укажите дату рождения');
+          return;
+        }
+        
+        console.log('📤 Отправляем данные:', {
+          full_name: editingPatient.full_name,
+          phone: cleanPhone,
+          iin: editingPatient.iin,
+          birth_date: editingPatient.birth_date
+        });
+        
         const { data: newPatient } = await api.post('/patients/', {
           full_name: editingPatient.full_name,
-          phone: editingPatient.phone,
+          phone: cleanPhone,
           iin: editingPatient.iin,
           birth_date: editingPatient.birth_date,
           allergies: editingPatient.allergies || '',
