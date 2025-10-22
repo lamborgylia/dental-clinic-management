@@ -511,14 +511,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
           doctorId={doctorId}
           treatmentPlanForAppointment={treatmentPlanForAppointment}
           onAppointmentCreated={(appointment) => {
-            setAppointments(prev => [...prev, appointment]);
+            console.log('✅ Запись создана, перезагружаем календарь:', appointment);
+            // Перезагружаем записи из API для корректного отображения
+            fetchAppointments();
             onAppointmentCreated?.(appointment);
             setIsModalOpen(false);
           }}
           onAppointmentUpdated={(appointment) => {
-            setAppointments(prev => 
-              prev.map(apt => apt.id === appointment.id ? appointment : apt)
-            );
+            console.log('✅ Запись обновлена, перезагружаем календарь:', appointment);
+            // Перезагружаем записи из API для корректного отображения
+            fetchAppointments();
             onAppointmentUpdated?.(appointment);
             setIsModalOpen(false);
           }}
