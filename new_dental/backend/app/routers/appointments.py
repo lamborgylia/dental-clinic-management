@@ -112,6 +112,7 @@ async def create_appointment(
 ):
     from ..models.clinic_patient import ClinicPatient
     from datetime import datetime
+    from ..routers.websocket import notify_appointment_created
     
     # Создаем запись
     db_appointment = Appointment(**appointment.dict())
@@ -141,6 +142,34 @@ async def create_appointment(
     
     db.commit()
     db.refresh(db_appointment)
+    
+    # Отправляем WebSocket уведомление о новой записи
+    try:
+        # Получаем данные пациента для уведомления
+        patient = db.query(Patient).filter(Patient.id == db_appointment.patient_id).first()
+        appointment_data = {
+            "id": db_appointment.id,
+            "patient_id": db_appointment.patient_id,
+            "doctor_id": db_appointment.doctor_id,
+            "appointment_datetime": db_appointment.appointment_datetime.isoformat() if db_appointment.appointment_datetime else None,
+            "status": db_appointment.status,
+            "service_type": db_appointment.service_type,
+            "notes": db_appointment.notes,
+            "patient_name": patient.full_name if patient else None,
+            "patient_phone": patient.phone if patient else None,
+            "created_at": db_appointment.created_at.isoformat() if db_appointment.created_at else None
+        }
+        
+        # Уведомляем врача и текущего пользователя
+        await notify_appointment_created(
+            appointment_data, 
+            doctor_id=db_appointment.doctor_id,
+            user_id=current_user.id
+        )
+        print(f"📡 WebSocket уведомление отправлено для записи {db_appointment.id}")
+    except Exception as e:
+        print(f"❌ Ошибка отправки WebSocket уведомления: {e}")
+    
     return db_appointment
 
 
@@ -165,6 +194,7 @@ async def update_appointment(
 ):
     from ..models.clinic_patient import ClinicPatient
     from datetime import datetime
+    from ..routers.websocket import notify_appointment_updated
     
     db_appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
     if db_appointment is None:
@@ -194,6 +224,34 @@ async def update_appointment(
     
     db.commit()
     db.refresh(db_appointment)
+    
+    # Отправляем WebSocket уведомление об обновлении записи
+    try:
+        # Получаем данные пациента для уведомления
+        patient = db.query(Patient).filter(Patient.id == db_appointment.patient_id).first()
+        appointment_data = {
+            "id": db_appointment.id,
+            "patient_id": db_appointment.patient_id,
+            "doctor_id": db_appointment.doctor_id,
+            "appointment_datetime": db_appointment.appointment_datetime.isoformat() if db_appointment.appointment_datetime else None,
+            "status": db_appointment.status,
+            "service_type": db_appointment.service_type,
+            "notes": db_appointment.notes,
+            "patient_name": patient.full_name if patient else None,
+            "patient_phone": patient.phone if patient else None,
+            "updated_at": db_appointment.updated_at.isoformat() if db_appointment.updated_at else None
+        }
+        
+        # Уведомляем врача и текущего пользователя
+        await notify_appointment_updated(
+            appointment_data, 
+            doctor_id=db_appointment.doctor_id,
+            user_id=current_user.id
+        )
+        print(f"📡 WebSocket уведомление об обновлении отправлено для записи {db_appointment.id}")
+    except Exception as e:
+        print(f"❌ Ошибка отправки WebSocket уведомления об обновлении: {e}")
+    
     return db_appointment
 
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth_router, patients_router, appointments_router, services_router, clinics_router, users_router, tooth_services, treatment_plans, treatment_orders, visits, clinic_patients, deploy
+from .routers import auth_router, patients_router, appointments_router, services_router, clinics_router, users_router, tooth_services, treatment_plans, treatment_orders, visits, clinic_patients, deploy, websocket
 from .core.database import engine
 from .models import Base
 
@@ -66,7 +66,7 @@ app.include_router(treatment_plans.router)
 app.include_router(treatment_orders.router, prefix="/treatment-orders", tags=["treatment-orders"])
 app.include_router(visits.router, prefix="/visits", tags=["visits"])
 app.include_router(clinic_patients.router, prefix="/clinic-patients", tags=["clinic-patients"])
-app.include_router(deploy.router, prefix="/deploy", tags=["deploy"])
+app.include_router(websocket.router, prefix="/ws", tags=["websocket"])
 
 @app.get("/")
 async def root():

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentModal from './AppointmentModal';
 import { appointmentsApi } from '../services/appointmentsApi';
+import { websocketService, AppointmentData } from '../services/websocket';
 // import type { Appointment as ApiAppointment } from '../services/appointmentsApi';
 
 // Интерфейс для отображения в календаре (с дополнительными полями для удобства)
@@ -165,6 +166,81 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   useEffect(() => {
     fetchAppointments();
   }, [currentDate, doctorId]);
+
+  // WebSocket подключение и обработчики
+  useEffect(() => {
+    console.log('🔌 Настраиваем WebSocket для врача:', doctorId);
+    
+    // Настраиваем обработчики WebSocket
+    websocketService.onAppointmentCreated = (data: AppointmentData) => {
+      console.log('📡 WebSocket: Новая запись создана:', data);
+      // Обновляем календарь
+      fetchAppointments();
+      // Вызываем внешний callback
+      if (onAppointmentCreated) {
+        // Преобразуем данные в формат календаря
+        const appointmentDateTime = new Date(data.appointment_datetime);
+        const calendarAppointment: Appointment = {
+          id: data.id,
+          patient_id: data.patient_id,
+          patient_name: data.patient_name || 'Неизвестный пациент',
+          patient_phone: data.patient_phone || '',
+          patient_iin: '',
+          patient_birth_date: '',
+          patient_allergies: '',
+          patient_chronic_diseases: '',
+          patient_contraindications: '',
+          patient_special_notes: '',
+          doctor_id: data.doctor_id,
+          appointment_date: appointmentDateTime.toISOString().split('T')[0],
+          start_time: appointmentDateTime.toTimeString().slice(0, 5),
+          end_time: appointmentDateTime.toTimeString().slice(0, 5),
+          status: data.status,
+          notes: data.notes || ''
+        };
+        onAppointmentCreated(calendarAppointment);
+      }
+    };
+
+    websocketService.onAppointmentUpdated = (data: AppointmentData) => {
+      console.log('📡 WebSocket: Запись обновлена:', data);
+      // Обновляем календарь
+      fetchAppointments();
+      // Вызываем внешний callback
+      if (onAppointmentUpdated) {
+        // Преобразуем данные в формат календаря
+        const appointmentDateTime = new Date(data.appointment_datetime);
+        const calendarAppointment: Appointment = {
+          id: data.id,
+          patient_id: data.patient_id,
+          patient_name: data.patient_name || 'Неизвестный пациент',
+          patient_phone: data.patient_phone || '',
+          patient_iin: '',
+          patient_birth_date: '',
+          patient_allergies: '',
+          patient_chronic_diseases: '',
+          patient_contraindications: '',
+          patient_special_notes: '',
+          doctor_id: data.doctor_id,
+          appointment_date: appointmentDateTime.toISOString().split('T')[0],
+          start_time: appointmentDateTime.toTimeString().slice(0, 5),
+          end_time: appointmentDateTime.toTimeString().slice(0, 5),
+          status: data.status,
+          notes: data.notes || ''
+        };
+        onAppointmentUpdated(calendarAppointment);
+      }
+    };
+
+    // Подключаемся к WebSocket
+    websocketService.connect(doctorId);
+
+    // Очистка при размонтировании
+    return () => {
+      console.log('🔌 Отключаем WebSocket');
+      websocketService.disconnect();
+    };
+  }, [doctorId, onAppointmentCreated, onAppointmentUpdated]);
 
   const fetchAppointments = async () => {
     try {
