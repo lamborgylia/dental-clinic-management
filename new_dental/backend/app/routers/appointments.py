@@ -53,7 +53,7 @@ async def get_appointments(
     # Фильтр по текущей неделе
     if current_week_only:
         from datetime import datetime, timedelta
-        today = datetime.now().replace(year=2025)  # Используем 2025 год
+        today = datetime.now()  # Убираем хардкод года
         start_of_week = today - timedelta(days=today.weekday())
         end_of_week = start_of_week + timedelta(days=6)
         
