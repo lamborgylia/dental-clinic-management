@@ -563,9 +563,9 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
       const appointmentData = {
         patient_id: patientId,
         doctor_id: formData.doctor_id, // Используем выбранного врача
-        appointment_date: date.toISOString().split('T')[0],
-        start_time: formData.start_time,
-        end_time: formData.end_time,
+        registrar_id: 1, // Временно используем ID 1 для регистратора
+        appointment_datetime: new Date(`${date.toISOString().split('T')[0]}T${formData.start_time}`).toISOString(),
+        service_type: 'consultation', // Временно устанавливаем тип услуги
         notes: formData.notes,
         // Добавляем данные пациента для новой записи
         patient_name: formData.full_name,
